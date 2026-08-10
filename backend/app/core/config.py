@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./eventos.db"
 
     jwt_secret_key: str = "jwt_secret_key_local"
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 60 * 24
+
     qr_hmac_secret: str = "qr_hmac_secret_local"
 
     ticketmaster_api_key: str = ""

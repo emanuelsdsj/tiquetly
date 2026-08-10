@@ -31,6 +31,13 @@ extend-exclude = ["alembic/versions"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+# B008 normally flags a function call as a mutable default argument, but
+# `Depends(...)` in a default is FastAPI's own documented dependency
+# injection style, not a bug. Allowlisting it here instead of disabling
+# B008 project-wide keeps the rest of the mutable-default check active.
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.params.Depends"]
+
 # Same line-length as ruff (see comment above) so the two tools never
 # fight over formatting. target-version = py312 for the same reason as
 # ruff: only use formatting features valid for the project's Python
@@ -42,6 +49,9 @@ extend-exclude = "alembic/versions"
 
 # testpaths restricted to tests/: keeps pytest from trying to collect
 # tests from inside .venv or other folders that are not part of this
-# project.
+# project. pythonpath adds backend/ to sys.path so "from app...." imports
+# resolve without needing to install the app as a package.
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_default_fixture_loop_scope = "function"

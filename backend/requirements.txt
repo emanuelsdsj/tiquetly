@@ -3,8 +3,13 @@ uvicorn[standard]==0.30.6
 sqlmodel==0.0.22
 alembic==1.13.2
 passlib[bcrypt]==1.7.4
+# passlib 1.7.4's own self-test breaks on bcrypt>=4.1 (raises instead of
+# truncating on passwords over 72 bytes during backend detection), so pin
+# to the last compatible release until passlib gets a fix.
+bcrypt==4.0.1
 python-jose[cryptography]==3.3.0
 python-multipart==0.0.9
 qrcode==7.4.2
 pillow==10.4.0
 pydantic-settings==2.5.2
+email-validator==2.2.0
