@@ -8,6 +8,10 @@
 [tool.ruff]
 line-length = 120
 target-version = "py312"
+# alembic/versions holds auto-generated migration files: their style
+# comes from alembic's own template, not from us, so linting/formatting
+# them would just fight the generator on every new revision.
+extend-exclude = ["alembic/versions"]
 
 # Deliberately small rule set, each one with a reason:
 # - E (pycodestyle): basic style (spacing, indentation), the baseline any
@@ -34,6 +38,7 @@ select = ["E", "F", "I", "UP", "B"]
 [tool.black]
 line-length = 120
 target-version = ["py312"]
+extend-exclude = "alembic/versions"
 
 # testpaths restricted to tests/: keeps pytest from trying to collect
 # tests from inside .venv or other folders that are not part of this
