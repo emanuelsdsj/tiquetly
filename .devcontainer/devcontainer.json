@@ -15,7 +15,7 @@
       "label": "frontend (Vite)"
     }
   },
-  "postCreateCommand": "bash -c 'if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi; if [ -f frontend/package.json ]; then npm install --prefix frontend; fi'",
+  "postCreateCommand": "bash -c 'if [ -f backend/requirements-dev.txt ]; then python3 -m venv backend/.venv && backend/.venv/bin/pip install -r backend/requirements-dev.txt; fi; if [ -f frontend/package.json ]; then npm install --prefix frontend; fi'",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -26,7 +26,8 @@
       ],
       "settings": {
         "editor.formatOnSave": true,
-        "python.testing.pytestEnabled": true
+        "python.testing.pytestEnabled": true,
+        "python.defaultInterpreterPath": "${workspaceFolder}/backend/.venv/bin/python"
       }
     }
   },

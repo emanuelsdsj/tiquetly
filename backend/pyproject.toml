@@ -1,13 +1,42 @@
+# line-length = 120 instead of ruff's default 88: user preference, and
+# the same value used by black below, so the two tools never disagree on
+# where to wrap a line (ruff would reformat an import/line at one point,
+# black at another).
+# target-version = "py312": same Python version installed in the
+# devcontainer, so ruff only suggests syntax that version actually
+# supports.
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py312"
 
+# Deliberately small rule set, each one with a reason:
+# - E (pycodestyle): basic style (spacing, indentation), the baseline any
+#   Python linter covers.
+# - F (pyflakes): real bugs, not just style (unused import, variable
+#   never read, undefined name). This is the one that matters most.
+# - I (isort): sorts and groups imports automatically, avoids needing a
+#   separate tool just for that.
+# - UP (pyupgrade): flags old syntax when a newer equivalent exists in
+#   Python 3.12 (e.g. `Optional[str]` becomes `str | None`), keeps the
+#   code in the idiom of the version the project actually uses.
+# - B (flake8-bugbear): catches patterns that cause real bugs and that
+#   pyflakes does not cover (e.g. a mutable value as a default argument).
+# Not enabled: docstring rules (D) and strict naming (N), because the
+# project does not require docstrings everywhere and FastAPI/SQLModel's
+# own naming convention is already enough without extra enforcement.
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 
+# Same line-length as ruff (see comment above) so the two tools never
+# fight over formatting. target-version = py312 for the same reason as
+# ruff: only use formatting features valid for the project's Python
+# version.
 [tool.black]
-line-length = 100
+line-length = 120
 target-version = ["py312"]
 
+# testpaths restricted to tests/: keeps pytest from trying to collect
+# tests from inside .venv or other folders that are not part of this
+# project.
 [tool.pytest.ini_options]
 testpaths = ["tests"]
