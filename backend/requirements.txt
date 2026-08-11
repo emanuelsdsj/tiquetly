@@ -13,3 +13,7 @@ qrcode==7.4.2
 pillow==10.4.0
 pydantic-settings==2.5.2
 email-validator==2.2.0
+# Was already present transitively (FastAPI's TestClient needs it), pinned
+# directly now that catalog providers also use it to call the Ticketmaster
+# and TMDb APIs.
+httpx==0.27.2

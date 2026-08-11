@@ -6,6 +6,7 @@ from app.core.errors import ForbiddenError, InvalidCredentialsError
 from app.core.security import decode_access_token
 from app.db import get_session
 from app.models import User, UserRole
+from app.services.catalog.ticketmaster import TicketmasterProvider
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -33,3 +34,7 @@ def require_role(*roles: UserRole):
 require_organizer = require_role(UserRole.organizer)
 require_customer = require_role(UserRole.customer)
 require_gatekeeper = require_role(UserRole.gatekeeper)
+
+
+def get_ticketmaster_provider() -> TicketmasterProvider:
+    return TicketmasterProvider()

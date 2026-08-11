@@ -22,3 +22,11 @@ class InvalidCredentialsError(AppError):
 
 class ForbiddenError(AppError):
     status_code = 403
+
+
+class CatalogProviderError(AppError):
+    """Raised when an external catalog API (Ticketmaster, TMDb) is unreachable,
+    misconfigured, or returns something the adapter cannot make sense of.
+    """
+
+    status_code = 502
