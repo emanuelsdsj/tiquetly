@@ -72,16 +72,32 @@ export function EventDetailPage() {
             </p>
           ) : (
             <form className="event-detail-page__form" onSubmit={handleReserve}>
-              <label>
-                Quantidade
-                <input
-                  type="number"
-                  min="1"
-                  max={remaining}
-                  value={quantity}
-                  onChange={(formEvent) => setQuantity(Number(formEvent.target.value))}
-                />
-              </label>
+              <div className="event-detail-page__quantity">
+                <span>Quantidade</span>
+                <div className="quantity-stepper">
+                  <button
+                    type="button"
+                    className="quantity-stepper__button"
+                    onClick={() => setQuantity((current) => Math.max(1, current - 1))}
+                    disabled={quantity <= 1}
+                    aria-label="Diminuir quantidade"
+                  >
+                    −
+                  </button>
+                  <span className="quantity-stepper__value" aria-live="polite">
+                    {quantity}
+                  </span>
+                  <button
+                    type="button"
+                    className="quantity-stepper__button"
+                    onClick={() => setQuantity((current) => Math.min(remaining, current + 1))}
+                    disabled={quantity >= remaining}
+                    aria-label="Aumentar quantidade"
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
               <span className="event-detail-page__remaining">{remaining} disponíveis</span>
               {reserveError && <p className="event-detail-page__error">{reserveError}</p>}
               <button type="submit" disabled={submitting}>
