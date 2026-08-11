@@ -7,6 +7,7 @@ from app.core.security import decode_access_token
 from app.db import get_session
 from app.models import User, UserRole
 from app.services.catalog.ticketmaster import TicketmasterProvider
+from app.services.catalog.tmdb import TmdbProvider
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
@@ -38,3 +39,7 @@ require_gatekeeper = require_role(UserRole.gatekeeper)
 
 def get_ticketmaster_provider() -> TicketmasterProvider:
     return TicketmasterProvider()
+
+
+def get_tmdb_provider() -> TmdbProvider:
+    return TmdbProvider()

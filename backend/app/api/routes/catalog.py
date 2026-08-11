@@ -1,17 +1,21 @@
 from fastapi import APIRouter, Depends
 
-from app.api.deps import get_ticketmaster_provider, require_organizer
-from app.models import User
-from app.services.catalog.base import CatalogEvent
+from app.api.deps import get_ticketmaster_provider, get_tmdb_provider, require_organizer
+from app.models import EventCategory, User
+from app.services.catalog.base import CatalogEvent, CatalogProvider
 from app.services.catalog.ticketmaster import TicketmasterProvider
+from app.services.catalog.tmdb import TmdbProvider
 
 router = APIRouter(prefix="/catalog", tags=["catalog"])
 
 
-@router.get("/shows", response_model=list[CatalogEvent])
-def search_shows(
+@router.get("/search", response_model=list[CatalogEvent])
+def search_catalog(
+    category: EventCategory,
     keyword: str | None = None,
-    provider: TicketmasterProvider = Depends(get_ticketmaster_provider),
+    ticketmaster: TicketmasterProvider = Depends(get_ticketmaster_provider),
+    tmdb: TmdbProvider = Depends(get_tmdb_provider),
     current_user: User = Depends(require_organizer),
 ) -> list[CatalogEvent]:
+    provider: CatalogProvider = ticketmaster if category == EventCategory.show else tmdb
     return provider.search(keyword)
