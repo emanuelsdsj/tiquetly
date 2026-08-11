@@ -2,6 +2,7 @@ from datetime import datetime
 
 from sqlmodel import Session, select
 
+from app.core.errors import EventNotFoundError
 from app.models import Event, EventCategory, EventStatus, ReservationMode, Seat, User
 from app.schemas import EventCreate
 
@@ -77,3 +78,16 @@ def search_published_events(
         statement = statement.where(Event.price <= price_max)
     statement = statement.order_by(Event.date)
     return list(session.exec(statement).all())
+
+
+def list_event_seats(session: Session, event_id: int) -> list[Seat]:
+    event = session.get(Event, event_id)
+    if event is None or event.status != EventStatus.published:
+        raise EventNotFoundError(f"event {event_id} not found")
+
+    statement = select(Seat).where(Seat.event_id == event_id)
+    seats = list(session.exec(statement).all())
+    # Sorted in Python, not SQL: `col` is stored as text (see the Seat
+    # model), so an ORDER BY would sort "10" before "2" lexicographically.
+    seats.sort(key=lambda seat: (seat.row, int(seat.col)))
+    return seats

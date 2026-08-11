@@ -6,8 +6,15 @@ from sqlmodel import Session
 from app.api.deps import require_customer, require_organizer
 from app.core.errors import EventNotFoundError
 from app.db import get_session
-from app.models import Event, EventCategory, EventStatus, Reservation, User
-from app.schemas import EventCreate, EventRead, GeneralReservationCreate, ReservationRead
+from app.models import Event, EventCategory, EventStatus, Reservation, Seat, User
+from app.schemas import (
+    EventCreate,
+    EventRead,
+    GeneralReservationCreate,
+    ReservationRead,
+    SeatRead,
+    SeatReservationCreate,
+)
 from app.services import event_service, reservation_service
 
 router = APIRouter(prefix="/events", tags=["events"])
@@ -67,3 +74,18 @@ def create_general_reservation(
     current_user: User = Depends(require_customer),
 ) -> Reservation:
     return reservation_service.create_general_reservation(session, current_user, event_id, data.quantity)
+
+
+@router.get("/{event_id}/seats", response_model=list[SeatRead])
+def list_event_seats(event_id: int, session: Session = Depends(get_session)) -> list[Seat]:
+    return event_service.list_event_seats(session, event_id)
+
+
+@router.post("/{event_id}/seat-reservations", response_model=ReservationRead, status_code=201)
+def create_seatmap_reservation(
+    event_id: int,
+    data: SeatReservationCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_customer),
+) -> Reservation:
+    return reservation_service.create_seatmap_reservation(session, current_user, event_id, data.seat_ids)

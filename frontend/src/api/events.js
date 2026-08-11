@@ -11,3 +11,11 @@ export function getEvent(id) {
 export function reserveGeneral(eventId, quantity, token) {
   return apiPost(`/events/${eventId}/reservations`, { quantity }, { token })
 }
+
+export function getEventSeats(eventId) {
+  return apiGet(`/events/${eventId}/seats`)
+}
+
+export function reserveSeats(eventId, seatIds, token) {
+  return apiPost(`/events/${eventId}/seat-reservations`, { seat_ids: seatIds }, { token })
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getEvent, reserveGeneral } from '../api/events'
+import { getEvent, getEventSeats, reserveGeneral, reserveSeats } from '../api/events'
+import { SeatMap } from '../components/SeatMap'
 import { useAuth } from '../context/AuthContext'
 import { formatEventDate, formatPrice } from '../lib/format'
 import './EventDetailPage.css'
@@ -13,6 +14,8 @@ export function EventDetailPage() {
   const [event, setEvent] = useState(null)
   const [error, setError] = useState(null)
   const [quantity, setQuantity] = useState(1)
+  const [seats, setSeats] = useState(null)
+  const [selectedSeatIds, setSelectedSeatIds] = useState([])
   const [reservation, setReservation] = useState(null)
   const [reserveError, setReserveError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
@@ -25,7 +28,20 @@ export function EventDetailPage() {
       .catch((err) => setError(err.message))
   }, [id])
 
-  async function handleReserve(formEvent) {
+  useEffect(() => {
+    if (event?.reservation_mode !== 'seatmap') return
+    getEventSeats(id)
+      .then(setSeats)
+      .catch((err) => setError(err.message))
+  }, [id, event])
+
+  function toggleSeat(seatId) {
+    setSelectedSeatIds((current) =>
+      current.includes(seatId) ? current.filter((id) => id !== seatId) : [...current, seatId],
+    )
+  }
+
+  async function handleReserveGeneral(formEvent) {
     formEvent.preventDefault()
     setSubmitting(true)
     setReserveError(null)
@@ -39,11 +55,39 @@ export function EventDetailPage() {
     }
   }
 
+  async function handleReserveSeats() {
+    setSubmitting(true)
+    setReserveError(null)
+    try {
+      const created = await reserveSeats(id, selectedSeatIds, token)
+      setReservation(created)
+      const seatsById = new Map(seats.map((seat) => [seat.id, seat]))
+      setSeats(
+        seats.map((seat) =>
+          selectedSeatIds.includes(seat.id) ? { ...seat, status: 'reserved' } : seat,
+        ),
+      )
+      setSelectedSeatIds((current) => current.filter((seatId) => seatsById.has(seatId)))
+    } catch (err) {
+      setReserveError(err.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   if (error)
     return <p className="event-detail-page__state event-detail-page__state--error">{error}</p>
   if (!event) return <p className="event-detail-page__state">Carregando evento...</p>
 
   const remaining = event.capacity - event.reserved_count
+  const selectedSeatLabels =
+    seats && selectedSeatIds.length > 0
+      ? selectedSeatIds
+          .map((seatId) => seats.find((seat) => seat.id === seatId))
+          .filter(Boolean)
+          .map((seat) => `${seat.row}${seat.col}`)
+          .join(', ')
+      : ''
 
   return (
     <main className="event-detail-page">
@@ -71,7 +115,7 @@ export function EventDetailPage() {
               <Link to="/entrar">Entre</Link> para reservar seu ingresso.
             </p>
           ) : (
-            <form className="event-detail-page__form" onSubmit={handleReserve}>
+            <form className="event-detail-page__form" onSubmit={handleReserveGeneral}>
               <div className="event-detail-page__quantity">
                 <span>Quantidade</span>
                 <div className="quantity-stepper">
@@ -104,6 +148,48 @@ export function EventDetailPage() {
                 {submitting ? 'Reservando...' : 'Reservar'}
               </button>
             </form>
+          )}
+        </section>
+      )}
+
+      {event.reservation_mode === 'seatmap' && (
+        <section className="event-detail-page__reserve event-detail-page__reserve--seatmap">
+          {reservation ? (
+            <p className="event-detail-page__confirmation">
+              Reserva feita: assento{selectedSeatLabels.includes(',') ? 's' : ''}{' '}
+              {selectedSeatLabels || 'selecionado'}, aguardando pagamento.
+            </p>
+          ) : !seats ? (
+            <p className="event-detail-page__state">Carregando mapa de assentos...</p>
+          ) : seats.every((seat) => seat.status !== 'available') ? (
+            <p className="event-detail-page__state">
+              Todos os assentos estão ocupados para este evento.
+            </p>
+          ) : (
+            <>
+              <SeatMap seats={seats} selected={selectedSeatIds} onToggle={toggleSeat} />
+              {!user ? (
+                <p className="event-detail-page__state">
+                  <Link to="/entrar">Entre</Link> para reservar seus assentos.
+                </p>
+              ) : (
+                <div className="event-detail-page__seat-summary">
+                  <span>
+                    {selectedSeatIds.length > 0
+                      ? `${selectedSeatIds.length} assento${selectedSeatIds.length > 1 ? 's' : ''} · ${formatPrice(event.price * selectedSeatIds.length)}`
+                      : 'Selecione um ou mais assentos'}
+                  </span>
+                  {reserveError && <p className="event-detail-page__error">{reserveError}</p>}
+                  <button
+                    type="button"
+                    disabled={selectedSeatIds.length === 0 || submitting}
+                    onClick={handleReserveSeats}
+                  >
+                    {submitting ? 'Reservando...' : 'Reservar'}
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </section>
       )}

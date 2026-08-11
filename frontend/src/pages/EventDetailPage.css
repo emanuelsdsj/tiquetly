@@ -56,6 +56,39 @@
   padding: 24px;
 }
 
+.event-detail-page__reserve--seatmap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.event-detail-page__seat-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  padding-top: 16px;
+  border-top: 1px dashed var(--stub-line);
+}
+
+.event-detail-page__seat-summary button {
+  background: var(--ink);
+  color: var(--ink-text);
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.event-detail-page__seat-summary button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .event-detail-page__form {
   display: flex;
   flex-direction: column;
