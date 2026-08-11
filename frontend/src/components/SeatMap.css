@@ -1,7 +1,42 @@
 .seat-map {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Curved screen indicator: a wide ellipse, clipped by the shorter wrapper
+   so only its top arc shows, lit with the movie-category accent so a
+   seatmap always reads as "cinema" at a glance. */
+.seat-map__screen-wrap {
+  width: 100%;
+  max-width: 420px;
+  height: 16px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+}
+
+.seat-map__screen {
+  width: 100%;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse at center top,
+    rgba(43, 179, 163, 0.55),
+    rgba(43, 179, 163, 0) 72%
+  );
+  box-shadow: 0 6px 20px 2px rgba(43, 179, 163, 0.35);
+}
+
+.seat-map__screen-label {
+  margin: 2px 0 20px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
 }
 
 .seat-map__legend {
@@ -9,6 +44,7 @@
   gap: 20px;
   font-size: 0.8rem;
   color: var(--ink-muted);
+  margin-top: 20px;
 }
 
 .seat-map__legend span {
@@ -21,7 +57,7 @@
   display: inline-block;
   width: 12px;
   height: 12px;
-  border-radius: 3px;
+  border-radius: 4px 4px 2px 2px;
   border: 1px solid var(--stub-line);
 }
 
@@ -45,6 +81,7 @@
   gap: 8px;
   overflow-x: auto;
   padding-bottom: 4px;
+  max-width: 100%;
 }
 
 .seat-map__row {
@@ -54,7 +91,7 @@
 }
 
 .seat-map__row-label {
-  width: 20px;
+  width: 18px;
   font-family: var(--font-mono);
   font-size: 0.78rem;
   color: var(--ink-muted);
@@ -62,16 +99,28 @@
   flex-shrink: 0;
 }
 
-.seat-map__seat {
-  width: 32px;
-  height: 32px;
+.seat-map__block {
+  display: flex;
+  gap: 6px;
+}
+
+.seat-map__aisle {
+  width: 22px;
   flex-shrink: 0;
-  border-radius: 4px;
+}
+
+.seat-map__seat {
+  width: 30px;
+  height: 28px;
+  flex-shrink: 0;
+  /* Rounded shoulders, flatter base: reads as a seat back, not a button. */
+  border-radius: 8px 8px 3px 3px;
   border: 1px solid var(--stub-line);
+  border-bottom-width: 3px;
   background: var(--ink-raised);
   color: var(--ink-text);
   font-family: var(--font-mono);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   cursor: pointer;
 }
 
@@ -82,7 +131,7 @@
 
 .seat-map__seat--selected {
   background: var(--marquee-gold);
-  border-color: var(--marquee-gold);
+  border-color: #c9860f;
   color: #201a10;
   font-weight: 600;
 }
@@ -91,4 +140,5 @@
   opacity: 0.3;
   cursor: default;
   border-style: dashed;
+  border-bottom-width: 1px;
 }
