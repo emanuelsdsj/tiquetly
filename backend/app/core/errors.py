@@ -30,3 +30,19 @@ class CatalogProviderError(AppError):
     """
 
     status_code = 502
+
+
+class EventNotFoundError(AppError):
+    status_code = 404
+
+
+class WrongReservationModeError(AppError):
+    status_code = 422
+
+
+class SoldOutError(AppError):
+    """The atomic capacity/seat check lost the race: nothing was oversold,
+    the request just arrived too late to get what was left.
+    """
+
+    status_code = 409

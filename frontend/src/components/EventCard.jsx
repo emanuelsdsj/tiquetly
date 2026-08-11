@@ -1,11 +1,17 @@
+import { Link } from 'react-router-dom'
 import { formatEventDate, formatPrice } from '../lib/format'
 import './EventCard.css'
 
 const CATEGORY_LABEL = { show: 'Show', movie: 'Filme' }
 
 export function EventCard({ event }) {
-  return (
-    <article className="event-card">
+  // Only general-admission events can be reserved so far (step 9); seatmap
+  // events (step 10) stay informational until that flow exists, rather
+  // than linking to a detail page with nothing to do on it.
+  const reservable = event.reservation_mode === 'general'
+
+  const content = (
+    <>
       <div className="event-card__info">
         <span className={`event-card__tag event-card__tag--${event.category}`}>
           {CATEGORY_LABEL[event.category]}
@@ -20,6 +26,16 @@ export function EventCard({ event }) {
       <div className="event-card__action">
         <span className="event-card__price">{formatPrice(event.price)}</span>
       </div>
-    </article>
+    </>
   )
+
+  if (reservable) {
+    return (
+      <Link to={`/eventos/${event.id}`} className="event-card">
+        {content}
+      </Link>
+    )
+  }
+
+  return <article className="event-card">{content}</article>
 }

@@ -3,11 +3,12 @@ from datetime import datetime
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
-from app.api.deps import require_organizer
+from app.api.deps import require_customer, require_organizer
+from app.core.errors import EventNotFoundError
 from app.db import get_session
-from app.models import Event, EventCategory, User
-from app.schemas import EventCreate, EventRead
-from app.services import event_service
+from app.models import Event, EventCategory, EventStatus, Reservation, User
+from app.schemas import EventCreate, EventRead, GeneralReservationCreate, ReservationRead
+from app.services import event_service, reservation_service
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -48,3 +49,21 @@ def list_my_events(
     current_user: User = Depends(require_organizer),
 ) -> list[Event]:
     return event_service.list_events_for_organizer(session, current_user)
+
+
+@router.get("/{event_id}", response_model=EventRead)
+def get_event(event_id: int, session: Session = Depends(get_session)) -> Event:
+    event = session.get(Event, event_id)
+    if event is None or event.status != EventStatus.published:
+        raise EventNotFoundError(f"event {event_id} not found")
+    return event
+
+
+@router.post("/{event_id}/reservations", response_model=ReservationRead, status_code=201)
+def create_general_reservation(
+    event_id: int,
+    data: GeneralReservationCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_customer),
+) -> Reservation:
+    return reservation_service.create_general_reservation(session, current_user, event_id, data.quantity)

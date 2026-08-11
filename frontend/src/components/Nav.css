@@ -1,0 +1,51 @@
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+
+.nav__brand {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  color: var(--ink-text);
+}
+
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-size: 0.88rem;
+}
+
+.nav__links a {
+  text-decoration: none;
+  color: var(--ink-muted);
+}
+
+.nav__links a:hover {
+  color: var(--ink-text);
+}
+
+.nav__user {
+  color: var(--ink-text);
+  font-weight: 600;
+}
+
+.nav__link-button {
+  background: none;
+  border: none;
+  color: var(--ink-muted);
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.nav__link-button:hover {
+  color: var(--ink-text);
+}

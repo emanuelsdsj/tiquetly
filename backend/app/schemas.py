@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
-from app.models import EventCategory, EventSource, EventStatus, ReservationMode, UserRole
+from app.models import EventCategory, EventSource, EventStatus, ReservationMode, ReservationStatus, UserRole
 
 
 class UserCreate(BaseModel):
@@ -60,9 +60,25 @@ class EventRead(BaseModel):
     date: datetime
     venue: str
     capacity: int
+    reserved_count: int
     price: float
     reservation_mode: ReservationMode
     status: EventStatus
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class GeneralReservationCreate(BaseModel):
+    quantity: int = Field(gt=0)
+
+
+class ReservationRead(BaseModel):
+    id: int
+    event_id: int
+    customer_id: int
+    quantity: int | None
+    status: ReservationStatus
     created_at: datetime
 
     model_config = {"from_attributes": True}
