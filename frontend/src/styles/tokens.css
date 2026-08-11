@@ -1,0 +1,19 @@
+/* Closed token system, decided in ADR 0007 (docs/adr/0007-visual-identity-ticket-stub.md).
+   Do not add or rename tokens here without updating that ADR. */
+:root {
+  --ink: #17151f;
+  --ink-raised: #211f2c;
+  --paper: #f1e6d2;
+  --ink-onpaper: #2a2118;
+  --stub-line: #c9b48c;
+  --marquee-gold: #f5a623;
+  --screen-teal: #2bb3a3;
+  --ink-muted: #8b87a0;
+  --ink-text: #ede9f5;
+
+  --error: #e2695c;
+
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-body: 'IBM Plex Sans', -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}

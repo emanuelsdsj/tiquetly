@@ -1,0 +1,108 @@
+.browse-page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.browse-page__head {
+  margin-bottom: 32px;
+}
+
+.browse-page__title {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3rem);
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.browse-page__subtitle {
+  color: var(--ink-muted);
+  margin: 6px 0 0;
+}
+
+.browse-page__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 36px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--ink-raised);
+}
+
+.browse-page__search {
+  flex: 1 1 240px;
+  background: var(--ink-raised);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--ink-text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}
+
+.browse-page__search:focus-visible {
+  outline: 2px solid var(--marquee-gold);
+  outline-offset: 1px;
+}
+
+.browse-page__categories {
+  display: flex;
+  gap: 8px;
+}
+
+.category-chip {
+  background: var(--ink-raised);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--ink-text);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.category-chip:focus-visible {
+  outline: 2px solid var(--marquee-gold);
+  outline-offset: 1px;
+}
+
+.category-chip--active {
+  background: var(--marquee-gold);
+  color: #201a10;
+  font-weight: 600;
+}
+
+.browse-page__price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.browse-page__price input {
+  width: 128px;
+  background: var(--ink-raised);
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--ink-text);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.browse-page__state {
+  color: var(--ink-muted);
+  padding: 40px 0;
+}
+
+.browse-page__state--error {
+  color: var(--error);
+}
+
+.browse-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 40px 32px;
+}

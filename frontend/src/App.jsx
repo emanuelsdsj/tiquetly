@@ -1,9 +1,11 @@
+import { Route, Routes } from 'react-router-dom'
+import { BrowsePage } from './pages/BrowsePage'
+
 function App() {
   return (
-    <main>
-      <h1>Eventos e Ingressos</h1>
-      <p>Front-end em construção.</p>
-    </main>
+    <Routes>
+      <Route path="/" element={<BrowsePage />} />
+    </Routes>
   )
 }
 

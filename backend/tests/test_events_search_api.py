@@ -1,0 +1,98 @@
+from sqlmodel import select
+
+from app.core.security import create_access_token
+from app.models import Event, EventStatus, User, UserRole
+
+SHOW_PAYLOAD = {
+    "source": "ticketmaster",
+    "external_id": "abc123",
+    "title": "Legião Urbana - Turnê 40 Anos",
+    "category": "show",
+    "date": "2026-09-01T23:00:00Z",
+    "venue": "Allianz Parque",
+    "capacity": 3,
+    "price": 180.0,
+    "reservation_mode": "general",
+}
+
+MOVIE_PAYLOAD = {
+    "source": "tmdb",
+    "external_id": "42",
+    "title": "A Odisseia",
+    "category": "movie",
+    "date": "2026-08-15T00:00:00Z",
+    "venue": "Cinemark Raposo Shopping",
+    "capacity": 12,
+    "price": 32.0,
+    "reservation_mode": "seatmap",
+}
+
+
+def _organizer_token(session):
+    user = User(email="org@example.com", hashed_password="x", name="Org", role=UserRole.organizer)
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return create_access_token(user_id=user.id, role=user.role.value)
+
+
+def _publish_both(client, session):
+    token = _organizer_token(session)
+    headers = {"Authorization": f"Bearer {token}"}
+    client.post("/events", json=SHOW_PAYLOAD, headers=headers)
+    client.post("/events", json=MOVIE_PAYLOAD, headers=headers)
+
+
+def test_search_events_requires_no_authentication(client, session):
+    _publish_both(client, session)
+
+    response = client.get("/events")
+
+    assert response.status_code == 200
+    assert len(response.json()) == 2
+
+
+def test_search_events_excludes_unpublished(client, session):
+    _publish_both(client, session)
+    cancelled = session.exec(select(Event)).first()
+    cancelled.status = EventStatus.cancelled
+    session.add(cancelled)
+    session.commit()
+
+    response = client.get("/events")
+
+    assert response.status_code == 200
+    assert len(response.json()) == 1
+
+
+def test_search_events_filters_by_keyword(client, session):
+    _publish_both(client, session)
+
+    response = client.get("/events", params={"q": "odisseia"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["title"] == "A Odisseia"
+
+
+def test_search_events_filters_by_category(client, session):
+    _publish_both(client, session)
+
+    response = client.get("/events", params={"category": "show"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["category"] == "show"
+
+
+def test_search_events_filters_by_price_range(client, session):
+    _publish_both(client, session)
+
+    response = client.get("/events", params={"price_max": 50})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["title"] == "A Odisseia"

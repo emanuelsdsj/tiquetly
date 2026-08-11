@@ -30,6 +30,10 @@ export default [
       ...react.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
+      // No TypeScript in this project (deliberate choice, see CLAUDE.md); prop-types would be
+      // the only runtime check, but keeping it in sync by hand across every component is more
+      // overhead than the plain-JS choice already accepted, so it stays off.
+      'react/prop-types': 'off',
     },
   },
   eslintConfigPrettier,
