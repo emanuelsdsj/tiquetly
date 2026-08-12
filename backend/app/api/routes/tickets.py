@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
 
@@ -16,3 +18,8 @@ def list_my_tickets(
     current_user: User = Depends(require_customer),
 ) -> list[TicketRead]:
     return ticket_service.list_my_tickets(session, current_user)
+
+
+@router.get("/public/{public_code}", response_model=TicketRead)
+def get_public_ticket(public_code: uuid.UUID, session: Session = Depends(get_session)) -> TicketRead:
+    return ticket_service.get_public_ticket(session, public_code)

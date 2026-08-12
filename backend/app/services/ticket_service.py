@@ -1,5 +1,8 @@
+import uuid
+
 from sqlmodel import Session, select, update
 
+from app.core.errors import TicketNotFoundError
 from app.core.qr import build_qr_image
 from app.core.security import build_qr_payload
 from app.models import Event, Reservation, ReservationSeat, Seat, SeatStatus, Ticket, User
@@ -45,6 +48,18 @@ def list_my_tickets(session: Session, customer: User) -> list[TicketRead]:
         select(Ticket).where(Ticket.customer_id == customer.id).order_by(Ticket.created_at.desc())
     ).all()
     return [_to_ticket_read(session, ticket) for ticket in tickets]
+
+
+def get_public_ticket(session: Session, public_code: uuid.UUID) -> TicketRead:
+    """No auth required: the public_code itself (an unguessable UUID,
+    never the sequential id) is the access control, the same trust model
+    as the QR signature (ADR 0012). Whoever holds the link holds the
+    ticket, matching how sharing a physical ticket works (ADR 0013).
+    """
+    ticket = session.exec(select(Ticket).where(Ticket.public_code == public_code)).first()
+    if ticket is None:
+        raise TicketNotFoundError(f"ticket {public_code} not found")
+    return _to_ticket_read(session, ticket)
 
 
 def _to_ticket_read(session: Session, ticket: Ticket) -> TicketRead:

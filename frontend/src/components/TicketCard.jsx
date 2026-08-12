@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { formatEventDate } from '../lib/format'
 import './TicketCard.css'
 
@@ -6,6 +7,15 @@ const STATUS_LABEL = { valid: 'Válido', used: 'Utilizado', cancelled: 'Cancelad
 
 export function TicketCard({ ticket }) {
   const { event, seat } = ticket
+  const [copied, setCopied] = useState(false)
+
+  function handleShare() {
+    const url = `${window.location.origin}/ingressos/${ticket.public_code}`
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
 
   return (
     <article className={`ticket-card ticket-card--${ticket.status}`}>
@@ -28,6 +38,9 @@ export function TicketCard({ ticket }) {
       <div className="ticket-card__action">
         <img className="ticket-card__qr" src={ticket.qr_image} alt="" />
         <span className="ticket-card__code">{ticket.public_code}</span>
+        <button type="button" className="ticket-card__share" onClick={handleShare}>
+          {copied ? 'Link copiado!' : 'Copiar link para compartilhar'}
+        </button>
       </div>
     </article>
   )

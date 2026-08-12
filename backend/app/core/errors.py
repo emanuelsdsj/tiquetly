@@ -75,3 +75,7 @@ class InvalidTicketSignatureError(AppError):
     """
 
     status_code = 422
+
+
+class TicketNotFoundError(AppError):
+    status_code = 404

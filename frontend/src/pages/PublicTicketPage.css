@@ -1,0 +1,15 @@
+.public-ticket-page {
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 64px 24px 80px;
+}
+
+.public-ticket-page__state {
+  color: var(--ink-muted);
+  padding: 40px 0;
+  text-align: center;
+}
+
+.public-ticket-page__state--error {
+  color: var(--error);
+}

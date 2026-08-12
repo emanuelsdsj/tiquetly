@@ -121,3 +121,19 @@
   text-align: center;
   word-break: break-all;
 }
+
+.ticket-card__share {
+  background: none;
+  border: 1px solid var(--stub-line);
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: var(--ink-onpaper);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.ticket-card__share:focus-visible {
+  outline: 2px solid var(--screen-teal);
+  outline-offset: 1px;
+}
