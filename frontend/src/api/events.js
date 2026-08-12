@@ -12,6 +12,10 @@ export function getMyEvents(token) {
   return apiGet('/events/mine', {}, { token })
 }
 
+export function createEvent(data, token) {
+  return apiPost('/events', data, { token })
+}
+
 export function updateEvent(id, data, token) {
   return apiPatch(`/events/${id}`, data, { token })
 }

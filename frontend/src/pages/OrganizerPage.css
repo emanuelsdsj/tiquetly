@@ -8,7 +8,25 @@
 }
 
 .organizer-page__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 28px;
+}
+
+.organizer-page__create {
+  flex-shrink: 0;
+  background: var(--marquee-gold);
+  color: #201a10;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .organizer-page__title {
@@ -30,6 +48,10 @@
 
 .organizer-page__state--error {
   color: var(--error);
+}
+
+.organizer-page__state--success {
+  color: var(--screen-teal);
 }
 
 .organizer-page__list {

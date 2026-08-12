@@ -1,18 +1,12 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { getMyEvents, unpublishEvent, updateEvent } from '../api/events'
 import { useAuth } from '../context/AuthContext'
-import { formatEventDate, formatPrice } from '../lib/format'
+import { formatEventDate, formatPrice, toDatetimeLocalValue } from '../lib/format'
 import './OrganizerPage.css'
 
 const CATEGORY_LABEL = { show: 'Show', movie: 'Filme' }
 const STATUS_LABEL = { published: 'Publicado', cancelled: 'Despublicado', draft: 'Rascunho' }
-
-function toDatetimeLocalValue(isoString) {
-  const date = new Date(isoString)
-  const pad = (n) => String(n).padStart(2, '0')
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`
-}
 
 function emptyForm(event) {
   return {
@@ -27,6 +21,8 @@ function emptyForm(event) {
 
 export function OrganizerPage() {
   const { token, user } = useAuth()
+  const location = useLocation()
+  const justCreated = Boolean(location.state?.createdEventId)
   const [events, setEvents] = useState(null)
   const [error, setError] = useState(null)
   const [editingId, setEditingId] = useState(null)
@@ -113,9 +109,18 @@ export function OrganizerPage() {
   return (
     <main className="organizer-page">
       <header className="organizer-page__head">
-        <h1 className="organizer-page__title">Meus eventos</h1>
-        <p className="organizer-page__subtitle">Gerencie os eventos que você publicou.</p>
+        <div>
+          <h1 className="organizer-page__title">Meus eventos</h1>
+          <p className="organizer-page__subtitle">Gerencie os eventos que você publicou.</p>
+        </div>
+        <Link to="/organizador/criar" className="organizer-page__create">
+          Criar evento
+        </Link>
       </header>
+
+      {justCreated && (
+        <p className="organizer-page__state organizer-page__state--success">Evento publicado.</p>
+      )}
 
       {error && <p className="organizer-page__state organizer-page__state--error">{error}</p>}
       {actionError && (
