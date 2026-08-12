@@ -79,3 +79,11 @@ class InvalidTicketSignatureError(AppError):
 
 class TicketNotFoundError(AppError):
     status_code = 404
+
+
+class EventNotPublishedError(AppError):
+    """Raised when unpublishing an event that is already cancelled (or
+    never published to begin with).
+    """
+
+    status_code = 409

@@ -10,6 +10,7 @@ from app.models import Event, EventCategory, EventStatus, Reservation, Seat, Use
 from app.schemas import (
     EventCreate,
     EventRead,
+    EventUpdate,
     GeneralReservationCreate,
     ReservationRead,
     SeatRead,
@@ -56,6 +57,25 @@ def list_my_events(
     current_user: User = Depends(require_organizer),
 ) -> list[Event]:
     return event_service.list_events_for_organizer(session, current_user)
+
+
+@router.patch("/{event_id}", response_model=EventRead)
+def update_event(
+    event_id: int,
+    data: EventUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_organizer),
+) -> Event:
+    return event_service.update_event(session, current_user, event_id, data)
+
+
+@router.post("/{event_id}/unpublish", response_model=EventRead)
+def unpublish_event(
+    event_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_organizer),
+) -> Event:
+    return event_service.unpublish_event(session, current_user, event_id)
 
 
 @router.get("/{event_id}", response_model=EventRead)

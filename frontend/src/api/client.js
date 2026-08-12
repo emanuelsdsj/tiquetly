@@ -36,6 +36,16 @@ export async function apiPost(path, body, { token } = {}) {
   return response.json()
 }
 
+export async function apiPatch(path, body, { token } = {}) {
+  const url = new URL(path, API_URL)
+  const headers = { 'Content-Type': 'application/json' }
+  if (token) headers.Authorization = `Bearer ${token}`
+
+  const response = await fetch(url, { method: 'PATCH', headers, body: JSON.stringify(body) })
+  if (!response.ok) await parseErrorAndThrow(response)
+  return response.json()
+}
+
 export async function apiPostForm(path, fields) {
   const url = new URL(path, API_URL)
   const response = await fetch(url, {

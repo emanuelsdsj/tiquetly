@@ -59,6 +59,17 @@ class EventCreate(BaseModel):
         return self
 
 
+class EventUpdate(BaseModel):
+    # Descriptive/commercial fields only (ADR 0016): capacity, category,
+    # reservation_mode, source and external_id stay fixed after creation.
+    title: str | None = None
+    image: str | None = None
+    description: str | None = None
+    date: datetime | None = None
+    venue: str | None = None
+    price: float | None = Field(default=None, ge=0)
+
+
 class EventRead(BaseModel):
     id: int
     organizer_id: int

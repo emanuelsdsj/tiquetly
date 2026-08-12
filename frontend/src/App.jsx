@@ -5,6 +5,7 @@ import { BrowsePage } from './pages/BrowsePage'
 import { EventDetailPage } from './pages/EventDetailPage'
 import { LoginPage } from './pages/LoginPage'
 import { MyTicketsPage } from './pages/MyTicketsPage'
+import { OrganizerPage } from './pages/OrganizerPage'
 import { PublicTicketPage } from './pages/PublicTicketPage'
 import { RegisterPage } from './pages/RegisterPage'
 
@@ -30,6 +31,7 @@ function App() {
         <Route path="/eventos/:id" element={<EventDetailPage />} />
         <Route path="/meus-ingressos" element={<MyTicketsPage />} />
         <Route path="/ingressos/:code" element={<PublicTicketPage />} />
+        <Route path="/organizador" element={<OrganizerPage />} />
         <Route
           path="/portaria"
           element={

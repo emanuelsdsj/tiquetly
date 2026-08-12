@@ -1,4 +1,4 @@
-import { apiGet, apiPost } from './client'
+import { apiGet, apiPatch, apiPost } from './client'
 
 export function searchEvents(filters = {}) {
   return apiGet('/events', filters)
@@ -6,6 +6,18 @@ export function searchEvents(filters = {}) {
 
 export function getEvent(id) {
   return apiGet(`/events/${id}`)
+}
+
+export function getMyEvents(token) {
+  return apiGet('/events/mine', {}, { token })
+}
+
+export function updateEvent(id, data, token) {
+  return apiPatch(`/events/${id}`, data, { token })
+}
+
+export function unpublishEvent(id, token) {
+  return apiPost(`/events/${id}/unpublish`, {}, { token })
 }
 
 export function reserveGeneral(eventId, quantity, token) {

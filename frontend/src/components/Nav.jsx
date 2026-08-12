@@ -21,6 +21,7 @@ export function Nav() {
           <>
             {user.role === 'customer' && <Link to="/meus-ingressos">Meus ingressos</Link>}
             {user.role === 'gatekeeper' && <Link to="/portaria">Portaria</Link>}
+            {user.role === 'organizer' && <Link to="/organizador">Meus eventos</Link>}
             <span className="nav__user">{user.name}</span>
             <button type="button" className="nav__link-button" onClick={handleSignOut}>
               Sair

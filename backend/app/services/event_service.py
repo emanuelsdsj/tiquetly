@@ -2,9 +2,9 @@ from datetime import datetime
 
 from sqlmodel import Session, select
 
-from app.core.errors import EventNotFoundError
+from app.core.errors import EventNotFoundError, EventNotPublishedError, ForbiddenError
 from app.models import Event, EventCategory, EventStatus, ReservationMode, Seat, User
-from app.schemas import EventCreate
+from app.schemas import EventCreate, EventUpdate
 
 # Simple fixed-width layout for seatmap events: seats fill row A first, then
 # B, and so on, ten to a row. Good enough for a theater-sized capacity;
@@ -78,6 +78,44 @@ def search_published_events(
         statement = statement.where(Event.price <= price_max)
     statement = statement.order_by(Event.date)
     return list(session.exec(statement).all())
+
+
+def update_event(session: Session, organizer: User, event_id: int, data: EventUpdate) -> Event:
+    event = _get_owned_event(session, organizer, event_id)
+
+    # Only the descriptive/commercial fields are editable (ADR 0016):
+    # capacity, category, reservation_mode, source and external_id all
+    # feed the seat map or the atomic reservation guards, changing them
+    # after seats/reservations may already exist is out of scope here.
+    update_data = data.model_dump(exclude_unset=True)
+    for field, value in update_data.items():
+        setattr(event, field, value)
+
+    session.add(event)
+    session.commit()
+    session.refresh(event)
+    return event
+
+
+def unpublish_event(session: Session, organizer: User, event_id: int) -> Event:
+    event = _get_owned_event(session, organizer, event_id)
+    if event.status != EventStatus.published:
+        raise EventNotPublishedError(f"event {event_id} is not published")
+
+    event.status = EventStatus.cancelled
+    session.add(event)
+    session.commit()
+    session.refresh(event)
+    return event
+
+
+def _get_owned_event(session: Session, organizer: User, event_id: int) -> Event:
+    event = session.get(Event, event_id)
+    if event is None:
+        raise EventNotFoundError(f"event {event_id} not found")
+    if event.organizer_id != organizer.id:
+        raise ForbiddenError("this event belongs to another organizer")
+    return event
 
 
 def list_event_seats(session: Session, event_id: int) -> list[Seat]:
