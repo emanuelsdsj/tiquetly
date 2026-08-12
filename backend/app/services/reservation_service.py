@@ -4,6 +4,7 @@ from app.core.errors import (
     EventNotFoundError,
     ForbiddenError,
     InvalidTestCardError,
+    ReservationNotCancellableError,
     ReservationNotFoundError,
     ReservationNotPendingError,
     SoldOutError,
@@ -18,6 +19,8 @@ from app.models import (
     ReservationStatus,
     Seat,
     SeatStatus,
+    Ticket,
+    TicketStatus,
     User,
 )
 from app.services import ticket_service
@@ -135,6 +138,40 @@ def pay_reservation(session: Session, customer: User, reservation_id: int, card_
     if reservation.status == ReservationStatus.paid:
         ticket_service.generate_tickets_for_reservation(session, reservation)
 
+    return reservation
+
+
+def cancel_reservation(session: Session, customer: User, reservation_id: int) -> Reservation:
+    reservation = session.get(Reservation, reservation_id)
+    if reservation is None:
+        raise ReservationNotFoundError(f"reservation {reservation_id} not found")
+    if reservation.customer_id != customer.id:
+        raise ForbiddenError("this reservation belongs to another customer")
+    if reservation.status not in (ReservationStatus.pending, ReservationStatus.paid):
+        raise ReservationNotCancellableError(f"reservation is already {reservation.status.value}")
+
+    if reservation.status == ReservationStatus.paid:
+        ticket_ids = session.exec(select(Ticket.id).where(Ticket.reservation_id == reservation.id)).all()
+        # Guarded the same way as the gate's own valid -> used flip (ADR
+        # 0014): if a concurrent scan already marked a ticket used, this
+        # UPDATE will not touch it, and the rowcount mismatch below catches
+        # that instead of silently cancelling an admission that already
+        # happened.
+        statement = (
+            update(Ticket)
+            .where(Ticket.id.in_(ticket_ids), Ticket.status == TicketStatus.valid)
+            .values(status=TicketStatus.cancelled)
+        )
+        result = session.execute(statement)
+        if result.rowcount != len(ticket_ids):
+            session.rollback()
+            raise ReservationNotCancellableError("one or more tickets from this reservation were already used")
+
+    reservation.status = ReservationStatus.cancelled
+    session.add(reservation)
+    _release_held_stock(session, reservation)
+    session.commit()
+    session.refresh(reservation)
     return reservation
 
 

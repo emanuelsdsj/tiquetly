@@ -60,6 +60,16 @@ class ReservationNotPendingError(AppError):
     status_code = 409
 
 
+class ReservationNotCancellableError(AppError):
+    """The reservation is not pending or paid (already cancelled or
+    failed), or it is paid but at least one of its tickets was already
+    used at the gate, so cancelling now would revoke an admission that
+    already happened (see ADR 0017).
+    """
+
+    status_code = 409
+
+
 class InvalidTestCardError(AppError):
     """The card number does not match one of the fixed test numbers this
     simulation recognizes (see ADR 0010). Not a real card validation.

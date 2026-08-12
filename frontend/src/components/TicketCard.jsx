@@ -5,7 +5,7 @@ import './TicketCard.css'
 const CATEGORY_LABEL = { show: 'Show', movie: 'Filme' }
 const STATUS_LABEL = { valid: 'Válido', used: 'Utilizado', cancelled: 'Cancelado' }
 
-export function TicketCard({ ticket }) {
+export function TicketCard({ ticket, onCancel, cancelling }) {
   const { event, seat } = ticket
   const [copied, setCopied] = useState(false)
 
@@ -41,6 +41,16 @@ export function TicketCard({ ticket }) {
         <button type="button" className="ticket-card__share" onClick={handleShare}>
           {copied ? 'Link copiado!' : 'Copiar link para compartilhar'}
         </button>
+        {onCancel && ticket.status === 'valid' && (
+          <button
+            type="button"
+            className="ticket-card__cancel"
+            onClick={onCancel}
+            disabled={cancelling}
+          >
+            {cancelling ? 'Cancelando...' : 'Cancelar reserva'}
+          </button>
+        )}
       </div>
     </article>
   )

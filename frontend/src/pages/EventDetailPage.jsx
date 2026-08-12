@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getEvent, getEventSeats, reserveGeneral, reserveSeats } from '../api/events'
+import { cancelReservation } from '../api/reservations'
 import { PaymentForm } from '../components/PaymentForm'
 import { SeatMap } from '../components/SeatMap'
 import { useAuth } from '../context/AuthContext'
@@ -21,6 +22,8 @@ export function EventDetailPage() {
   const [reserveError, setReserveError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [declinedMessage, setDeclinedMessage] = useState(null)
+  const [cancelling, setCancelling] = useState(false)
+  const [cancelError, setCancelError] = useState(null)
 
   useEffect(() => {
     setError(null)
@@ -49,6 +52,23 @@ export function EventDetailPage() {
     setSelectedSeatIds([])
     getEvent(id).then(setEvent)
     if (event?.reservation_mode === 'seatmap') getEventSeats(id).then(setSeats)
+  }
+
+  async function handleCancelReservation() {
+    setCancelling(true)
+    setCancelError(null)
+    try {
+      await cancelReservation(reservation.id, token)
+      setDeclinedMessage('Reserva cancelada. O estoque foi liberado, você pode reservar de novo.')
+      setReservation(null)
+      setSelectedSeatIds([])
+      getEvent(id).then(setEvent)
+      if (event?.reservation_mode === 'seatmap') getEventSeats(id).then(setSeats)
+    } catch (err) {
+      setCancelError(err.message)
+    } finally {
+      setCancelling(false)
+    }
   }
 
   async function handleReserveGeneral(formEvent) {
@@ -137,6 +157,15 @@ export function EventDetailPage() {
                   onPaid={setReservation}
                   onDeclined={handleDeclined}
                 />
+                {cancelError && <p className="event-detail-page__error">{cancelError}</p>}
+                <button
+                  type="button"
+                  className="event-detail-page__cancel"
+                  onClick={handleCancelReservation}
+                  disabled={cancelling}
+                >
+                  {cancelling ? 'Cancelando...' : 'Desistir e cancelar reserva'}
+                </button>
               </>
             )
           ) : remaining <= 0 ? (
@@ -208,6 +237,15 @@ export function EventDetailPage() {
                   onPaid={setReservation}
                   onDeclined={handleDeclined}
                 />
+                {cancelError && <p className="event-detail-page__error">{cancelError}</p>}
+                <button
+                  type="button"
+                  className="event-detail-page__cancel"
+                  onClick={handleCancelReservation}
+                  disabled={cancelling}
+                >
+                  {cancelling ? 'Cancelando...' : 'Desistir e cancelar reserva'}
+                </button>
               </>
             )
           ) : !seats ? (

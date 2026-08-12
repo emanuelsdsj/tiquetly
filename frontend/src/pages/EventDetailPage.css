@@ -180,6 +180,23 @@
   margin: 0 0 16px;
 }
 
+.event-detail-page__cancel {
+  align-self: flex-start;
+  background: none;
+  border: 1px solid var(--error);
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: var(--error);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.event-detail-page__cancel:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 .event-detail-page__state {
   color: var(--ink-muted);
   padding: 40px 0;

@@ -18,3 +18,12 @@ def pay_reservation(
     current_user: User = Depends(require_customer),
 ) -> Reservation:
     return reservation_service.pay_reservation(session, current_user, reservation_id, data.card_number)
+
+
+@router.post("/{reservation_id}/cancel", response_model=ReservationRead)
+def cancel_reservation(
+    reservation_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(require_customer),
+) -> Reservation:
+    return reservation_service.cancel_reservation(session, current_user, reservation_id)

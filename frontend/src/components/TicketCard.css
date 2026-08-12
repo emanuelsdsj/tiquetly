@@ -137,3 +137,24 @@
   outline: 2px solid var(--screen-teal);
   outline-offset: 1px;
 }
+
+.ticket-card__cancel {
+  background: none;
+  border: 1px solid var(--error);
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: var(--error);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.ticket-card__cancel:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.ticket-card__cancel:focus-visible {
+  outline: 2px solid var(--error);
+  outline-offset: 1px;
+}
