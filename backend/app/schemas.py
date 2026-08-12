@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
@@ -132,3 +133,20 @@ class TicketRead(BaseModel):
     created_at: datetime
     event: EventRead
     seat: SeatRead | None = None
+
+
+class TicketValidationCreate(BaseModel):
+    event_id: int
+    # Either a full signed QR payload ("public_code.signature") from the
+    # camera, or a bare public_code typed in by hand (ADR 0014).
+    code: str = Field(min_length=1)
+
+
+TicketValidationOutcome = Literal["valid", "invalid", "already_used", "wrong_event"]
+
+
+class TicketValidationRead(BaseModel):
+    outcome: TicketValidationOutcome
+    event_title: str | None = None
+    seat: SeatRead | None = None
+    used_at: datetime | None = None

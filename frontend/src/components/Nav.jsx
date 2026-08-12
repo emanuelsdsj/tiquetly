@@ -19,7 +19,8 @@ export function Nav() {
       <div className="nav__links">
         {user ? (
           <>
-            <Link to="/meus-ingressos">Meus ingressos</Link>
+            {user.role === 'customer' && <Link to="/meus-ingressos">Meus ingressos</Link>}
+            {user.role === 'gatekeeper' && <Link to="/portaria">Portaria</Link>}
             <span className="nav__user">{user.name}</span>
             <button type="button" className="nav__link-button" onClick={handleSignOut}>
               Sair
