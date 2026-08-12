@@ -114,8 +114,17 @@ def validate_ticket(session: Session, event_id: int, code: str) -> TicketValidat
     )
     result = session.execute(statement)
     if result.rowcount == 0:
+        # Lost the race: something else changed the ticket's status
+        # between the read above and this UPDATE. Re-read rather than
+        # assuming "already_used", a concurrent cancellation (ADR 0017)
+        # lands here too and is not the same outcome.
         session.rollback()
-        return TicketValidationRead(outcome="already_used", event_title=event.title, seat=seat_read)
+        session.refresh(ticket)
+        if ticket.status == TicketStatus.cancelled:
+            return TicketValidationRead(outcome="invalid", event_title=event.title, seat=seat_read)
+        return TicketValidationRead(
+            outcome="already_used", event_title=event.title, seat=seat_read, used_at=ticket.used_at
+        )
     session.commit()
     return TicketValidationRead(outcome="valid", event_title=event.title, seat=seat_read, used_at=used_at)
 
