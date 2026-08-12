@@ -46,3 +46,23 @@ class SoldOutError(AppError):
     """
 
     status_code = 409
+
+
+class ReservationNotFoundError(AppError):
+    status_code = 404
+
+
+class ReservationNotPendingError(AppError):
+    """The reservation already moved past `pending` (paid, failed or
+    cancelled), so it cannot be paid again.
+    """
+
+    status_code = 409
+
+
+class InvalidTestCardError(AppError):
+    """The card number does not match one of the fixed test numbers this
+    simulation recognizes (see ADR 0010). Not a real card validation.
+    """
+
+    status_code = 422

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { getEvent, getEventSeats, reserveGeneral, reserveSeats } from '../api/events'
+import { PaymentForm } from '../components/PaymentForm'
 import { SeatMap } from '../components/SeatMap'
 import { useAuth } from '../context/AuthContext'
 import { formatEventDate, formatPrice } from '../lib/format'
@@ -19,6 +20,7 @@ export function EventDetailPage() {
   const [reservation, setReservation] = useState(null)
   const [reserveError, setReserveError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [declinedMessage, setDeclinedMessage] = useState(null)
 
   useEffect(() => {
     setError(null)
@@ -41,10 +43,19 @@ export function EventDetailPage() {
     )
   }
 
+  function handleDeclined() {
+    setDeclinedMessage('Pagamento recusado. O estoque foi liberado, você pode reservar de novo.')
+    setReservation(null)
+    setSelectedSeatIds([])
+    getEvent(id).then(setEvent)
+    if (event?.reservation_mode === 'seatmap') getEventSeats(id).then(setSeats)
+  }
+
   async function handleReserveGeneral(formEvent) {
     formEvent.preventDefault()
     setSubmitting(true)
     setReserveError(null)
+    setDeclinedMessage(null)
     try {
       const created = await reserveGeneral(id, quantity, token)
       setReservation(created)
@@ -58,6 +69,7 @@ export function EventDetailPage() {
   async function handleReserveSeats() {
     setSubmitting(true)
     setReserveError(null)
+    setDeclinedMessage(null)
     try {
       const created = await reserveSeats(id, selectedSeatIds, token)
       setReservation(created)
@@ -103,11 +115,29 @@ export function EventDetailPage() {
 
       {event.reservation_mode === 'general' && (
         <section className="event-detail-page__reserve">
+          {declinedMessage && !reservation && (
+            <p className="event-detail-page__declined">{declinedMessage}</p>
+          )}
           {reservation ? (
-            <p className="event-detail-page__confirmation">
-              Reserva feita: {reservation.quantity}{' '}
-              {reservation.quantity === 1 ? 'ingresso' : 'ingressos'}, aguardando pagamento.
-            </p>
+            reservation.status === 'paid' ? (
+              <p className="event-detail-page__confirmation">
+                Pagamento aprovado! {reservation.quantity}{' '}
+                {reservation.quantity === 1 ? 'ingresso confirmado' : 'ingressos confirmados'}.
+              </p>
+            ) : (
+              <>
+                <p className="event-detail-page__confirmation">
+                  Reserva feita: {reservation.quantity}{' '}
+                  {reservation.quantity === 1 ? 'ingresso' : 'ingressos'}, aguardando pagamento.
+                </p>
+                <PaymentForm
+                  reservation={reservation}
+                  amount={event.price * reservation.quantity}
+                  onPaid={setReservation}
+                  onDeclined={handleDeclined}
+                />
+              </>
+            )
           ) : remaining <= 0 ? (
             <p className="event-detail-page__state">Ingressos esgotados para este evento.</p>
           ) : !user ? (
@@ -154,11 +184,30 @@ export function EventDetailPage() {
 
       {event.reservation_mode === 'seatmap' && (
         <section className="event-detail-page__reserve event-detail-page__reserve--seatmap">
+          {declinedMessage && !reservation && (
+            <p className="event-detail-page__declined">{declinedMessage}</p>
+          )}
           {reservation ? (
-            <p className="event-detail-page__confirmation">
-              Reserva feita: assento{selectedSeatLabels.includes(',') ? 's' : ''}{' '}
-              {selectedSeatLabels || 'selecionado'}, aguardando pagamento.
-            </p>
+            reservation.status === 'paid' ? (
+              <p className="event-detail-page__confirmation">
+                Pagamento aprovado! Assento{selectedSeatLabels.includes(',') ? 's' : ''}{' '}
+                {selectedSeatLabels || 'selecionado'} confirmado
+                {selectedSeatLabels.includes(',') ? 's' : ''}.
+              </p>
+            ) : (
+              <>
+                <p className="event-detail-page__confirmation">
+                  Reserva feita: assento{selectedSeatLabels.includes(',') ? 's' : ''}{' '}
+                  {selectedSeatLabels || 'selecionado'}, aguardando pagamento.
+                </p>
+                <PaymentForm
+                  reservation={reservation}
+                  amount={event.price * selectedSeatIds.length}
+                  onPaid={setReservation}
+                  onDeclined={handleDeclined}
+                />
+              </>
+            )
           ) : !seats ? (
             <p className="event-detail-page__state">Carregando mapa de assentos...</p>
           ) : seats.every((seat) => seat.status !== 'available') ? (

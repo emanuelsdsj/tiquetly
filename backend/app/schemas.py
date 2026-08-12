@@ -95,3 +95,12 @@ class SeatRead(BaseModel):
 
 class SeatReservationCreate(BaseModel):
     seat_ids: list[int] = Field(min_length=1)
+
+
+class PaymentCreate(BaseModel):
+    # Simulation only: fields exist for form fidelity, but only card_number
+    # decides the outcome (ADR 0010). No Luhn check, no expiry validation.
+    card_number: str = Field(min_length=1)
+    card_holder: str = Field(min_length=1)
+    expiry: str = Field(min_length=1)
+    cvv: str = Field(min_length=1)

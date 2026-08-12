@@ -1,6 +1,14 @@
-from sqlmodel import Session, update
+from sqlmodel import Session, select, update
 
-from app.core.errors import EventNotFoundError, SoldOutError, WrongReservationModeError
+from app.core.errors import (
+    EventNotFoundError,
+    ForbiddenError,
+    InvalidTestCardError,
+    ReservationNotFoundError,
+    ReservationNotPendingError,
+    SoldOutError,
+    WrongReservationModeError,
+)
 from app.models import (
     Event,
     EventStatus,
@@ -12,6 +20,11 @@ from app.models import (
     SeatStatus,
     User,
 )
+
+# Fixed test card numbers this simulation recognizes, in the spirit of
+# Stripe's own test cards (ADR 0010). Not real card numbers, no Luhn check.
+APPROVE_CARD_NUMBER = "4242424242424242"
+DECLINE_CARD_NUMBER = "4000000000000002"
 
 
 def create_general_reservation(session: Session, customer: User, event_id: int, quantity: int) -> Reservation:
@@ -91,3 +104,53 @@ def create_seatmap_reservation(session: Session, customer: User, event_id: int, 
     session.commit()
 
     return reservation
+
+
+def pay_reservation(session: Session, customer: User, reservation_id: int, card_number: str) -> Reservation:
+    reservation = session.get(Reservation, reservation_id)
+    if reservation is None:
+        raise ReservationNotFoundError(f"reservation {reservation_id} not found")
+    if reservation.customer_id != customer.id:
+        raise ForbiddenError("this reservation belongs to another customer")
+    if reservation.status != ReservationStatus.pending:
+        raise ReservationNotPendingError(f"reservation is already {reservation.status.value}")
+
+    normalized_card_number = card_number.replace(" ", "")
+    if normalized_card_number == APPROVE_CARD_NUMBER:
+        reservation.status = ReservationStatus.paid
+    elif normalized_card_number == DECLINE_CARD_NUMBER:
+        reservation.status = ReservationStatus.failed
+        _release_held_stock(session, reservation)
+    else:
+        raise InvalidTestCardError(
+            f"unrecognized test card number, use {APPROVE_CARD_NUMBER} (approves) "
+            f"or {DECLINE_CARD_NUMBER} (declines)"
+        )
+
+    session.add(reservation)
+    session.commit()
+    session.refresh(reservation)
+    return reservation
+
+
+def _release_held_stock(session: Session, reservation: Reservation) -> None:
+    """Give back whatever a declined reservation was holding: the counted
+    quantity for general admission (ADR 0008), or the seats themselves for
+    seatmap events (ADR 0009). Symmetric to how each is claimed on creation.
+    """
+    if reservation.quantity is not None:
+        statement = (
+            update(Event)
+            .where(Event.id == reservation.event_id)
+            .values(reserved_count=Event.reserved_count - reservation.quantity)
+        )
+        session.execute(statement)
+        return
+
+    seat_ids = session.exec(
+        select(ReservationSeat.seat_id).where(ReservationSeat.reservation_id == reservation.id)
+    ).all()
+    if not seat_ids:
+        return
+    statement = update(Seat).where(Seat.id.in_(seat_ids)).values(status=SeatStatus.available)
+    session.execute(statement)

@@ -173,6 +173,13 @@
   margin: 0;
 }
 
+.event-detail-page__declined {
+  color: #9c4a3a;
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0 0 16px;
+}
+
 .event-detail-page__state {
   color: var(--ink-muted);
   padding: 40px 0;

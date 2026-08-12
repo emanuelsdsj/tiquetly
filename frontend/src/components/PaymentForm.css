@@ -1,0 +1,79 @@
+.payment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 16px;
+  border-top: 1px dashed var(--stub-line);
+}
+
+.payment-form__amount {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  margin: 0;
+}
+
+.payment-form__row {
+  display: flex;
+  gap: 14px;
+}
+
+.payment-form__row .payment-form__field {
+  flex: 1;
+}
+
+.payment-form__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.payment-form__field input {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--stub-line);
+  background: #fff;
+  color: var(--ink-onpaper);
+}
+
+.payment-form__field input:focus-visible {
+  outline: 2px solid var(--screen-teal);
+  outline-offset: 1px;
+}
+
+.payment-form__hint {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: #5b4e3a;
+  margin: 0;
+}
+
+.payment-form__hint strong {
+  font-family: var(--font-mono);
+}
+
+.payment-form__error {
+  color: #9c4a3a;
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.payment-form button {
+  background: var(--ink);
+  color: var(--ink-text);
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  align-self: flex-start;
+}
+
+.payment-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
