@@ -14,7 +14,8 @@ paga de forma simulada, e a portaria valida o ingresso na entrada.
 - [Stack](#stack)
 - [Como rodar](#como-rodar)
 - [Variáveis de ambiente](#variáveis-de-ambiente)
-- [Testando o que já funciona](#testando-o-que-já-funciona)
+- [Dados de teste (seed)](#dados-de-teste-seed)
+- [Percorrendo o fluxo completo](#percorrendo-o-fluxo-completo)
 - [Estado atual](#estado-atual)
 - [Decisões de design](#decisões-de-design)
 
@@ -104,46 +105,54 @@ Frontend (`frontend/.env`, ver `frontend/.env.example`):
 | --- | --- |
 | `VITE_API_URL` | URL do backend. O padrão já cobre o setup local. |
 
-## Testando o que já funciona
+## Dados de teste (seed)
 
-Ainda não existe um jeito de criar um usuário organizador pela própria
-aplicação (isso vem do script de seed, passo pendente), então publicar o
-primeiro evento exige passar pela API diretamente.
+Com as migrações aplicadas e as chaves de API preenchidas, rodar:
 
-1. Criar uma conta de cliente pela tela ("Criar conta" em
-   http://localhost:5173), com um e-mail e senha à sua escolha.
-2. Promover esse usuário para organizador direto no banco:
+```
+cd backend
+.venv/bin/python -m app.seed
+```
 
-   ```
-   sqlite3 backend/eventos.db "UPDATE user SET role='organizer' WHERE email='seu@email.com'"
-   ```
+Cria (ou reaproveita, se já existirem: seguro rodar mais de uma vez) um
+organizador, dois clientes, uma conta de portaria, um evento de show
+publicado (Ticketmaster) e um de filme (TMDb) com assentos, sendo que um
+dos ingressos do filme já sai validado (para a tela de portaria já ter um
+caso de "já utilizado" pra mostrar, não só o caminho feliz). O script usa
+a Ticketmaster e a TMDb de verdade, no mesmo caminho que o organizador
+usaria pela tela, então as duas chaves de API precisam estar
+configuradas antes de rodar.
 
-3. Pegar um token para esse usuário e publicar um evento:
+Credenciais (senha igual pra todo mundo, só pra facilitar o teste):
 
-   ```
-   TOKEN=$(curl -s -X POST http://localhost:8000/auth/login \
-     -d "username=seu@email.com&password=sua-senha" \
-     -H "Content-Type: application/x-www-form-urlencoded" \
-     | python3 -c "import sys,json; print(json.load(sys.stdin)['access_token'])")
+| Papel | E-mail | Senha |
+| --- | --- | --- |
+| Organizador | `organizador@tiquetly.com` | `tiquetly123` |
+| Cliente 1 | `cliente1@tiquetly.com` | `tiquetly123` |
+| Cliente 2 | `cliente2@tiquetly.com` | `tiquetly123` |
+| Portaria | `portaria@tiquetly.com` | `tiquetly123` |
 
-   curl -X POST http://localhost:8000/events \
-     -H "Authorization: Bearer $TOKEN" \
-     -H "Content-Type: application/json" \
-     -d '{
-       "source": "ticketmaster", "external_id": "abc123",
-       "title": "Legião Urbana - Turnê 40 Anos", "category": "show",
-       "date": "2026-09-01T23:00:00Z", "venue": "Allianz Parque",
-       "capacity": 300, "price": 180.0, "reservation_mode": "general"
-     }'
-   ```
+## Percorrendo o fluxo completo
 
-4. Voltar para http://localhost:5173, o evento aparece na lista (com
-   busca por nome, filtro por categoria e preço máximo). Entrar com uma
-   segunda conta de cliente (a mesma conta promovida a organizador também
-   funciona, mas em um app real cada papel teria sua própria conta), abrir
-   o evento e reservar: quantidade para eventos `general`, mapa de
-   assentos para eventos `seatmap`. A reserva fica com status "pendente,
-   aguardando pagamento", porque o pagamento simulado ainda não existe.
+Depois do seed, em http://localhost:5173:
+
+1. **Organizador** (`organizador@tiquetly.com`): entrar, ir em "Meus
+   eventos", "Criar evento" para publicar outro a partir do catálogo, ou
+   editar/despublicar os dois já existentes.
+2. **Cliente** (`cliente1@tiquetly.com` ou `cliente2@tiquetly.com`):
+   buscar um evento na home, abrir, reservar (quantidade para eventos
+   `general`, mapa de assentos para `seatmap`), pagar com o cartão de
+   teste que aprova (`4242 4242 4242 4242`) ou o que recusa
+   (`4000 0000 0000 0002`, libera o estoque de novo). Reserva pendente
+   também pode ser cancelada antes de pagar ("Desistir e cancelar
+   reserva"). Depois de aprovado, o ingresso aparece em "Meus
+   ingressos", com QR, código para digitar na portaria e um botão para
+   copiar o link público de compartilhamento; de lá também dá para
+   cancelar uma reserva já paga (libera o ingresso e o lugar/estoque).
+3. **Portaria** (`portaria@tiquetly.com`): entrar, ir em "Portaria",
+   escolher o evento do dia, validar por câmera ou digitando o código.
+   Um ingresso do evento de filme semeado já sai "já utilizado" para
+   testar esse retorno sem precisar validar duas vezes na mão.
 
 ## Estado atual
 
@@ -153,29 +162,37 @@ O que já funciona de ponta a ponta:
   de cliente, login, JWT.
 - Integração com Ticketmaster Discovery e TMDb atrás de um adapter comum
   de catálogo.
-- Organizador cria eventos a partir do catálogo (via API por enquanto).
+- Organizador cria eventos a partir do catálogo pela própria tela,
+  edita os já publicados e despublica.
 - Cliente navega, busca e filtra eventos publicados.
 - Reserva por quantidade (shows) e por mapa de assentos (filmes), as
   duas com garantia de não vender o mesmo lugar duas vezes sob
-  concorrência.
+  concorrência, e as duas com opção de cancelar (antes ou depois de
+  pagar) e devolver o lugar ao estoque.
+- Pagamento simulado (aprovação e recusa) com cartão de teste, libera o
+  estoque de novo em caso de recusa ou cancelamento.
+- Ingresso com QR assinado (não forjável) e a área "Meus ingressos".
+- Compartilhamento de ingresso por link público, sem exigir login.
+- Tela de portaria: escolha do evento do dia, leitura por câmera ou
+  digitação manual, os quatro retornos (válido, inválido, já utilizado,
+  evento errado).
+- Script de seed com os usuários e eventos de teste.
 
 O que ainda falta, pela ordem prevista:
 
-- Pagamento simulado (aprovação e recusa) e liberação do estoque em caso
-  de recusa.
-- Geração de ingresso com QR assinado e a área "Meus ingressos".
-- Compartilhamento de ingresso por link público.
-- Tela de portaria, leitura de QR e validação.
-- Painel do organizador (listagem, edição, despublicação dos próprios
-  eventos, hoje só existe criação).
-- Script de seed com usuários e eventos de teste.
-- Testes automatizados adicionais focados nas regras críticas restantes
-  (assinatura do QR, validação dupla na portaria).
+- Testes automatizados adicionais focados nas regras críticas restantes,
+  se sobrar algum gap depois de uma revisão final.
+- `docker-compose.yml` (stretch).
 - Deploy.
 
-Nenhum bug conhecido nas partes já implementadas. Esta seção será trocada
-por uma lista real de limitações antes da entrega final, como o edital
-pede.
+Nenhum bug conhecido nas partes já implementadas. Um limite conhecido: o
+evento de filme criado pelo seed só aparece no dropdown "hoje" da tela de
+portaria no dia em que o seed foi rodado (a data é fixada em meio-dia UTC
+no momento do seed, não recalculada depois), então rodar o seed e testar
+a portaria em dias diferentes exige rodar o seed de novo (idempotente
+para usuários e eventos já existentes, mas não reagenda a data de um
+evento que já existe). Esta seção será revisada por completo antes da
+entrega final, como o edital pede.
 
 ## Decisões de design
 
