@@ -20,6 +20,7 @@ from app.models import (
     SeatStatus,
     User,
 )
+from app.services import ticket_service
 
 # Fixed test card numbers this simulation recognizes, in the spirit of
 # Stripe's own test cards (ADR 0010). Not real card numbers, no Luhn check.
@@ -130,6 +131,10 @@ def pay_reservation(session: Session, customer: User, reservation_id: int, card_
     session.add(reservation)
     session.commit()
     session.refresh(reservation)
+
+    if reservation.status == ReservationStatus.paid:
+        ticket_service.generate_tickets_for_reservation(session, reservation)
+
     return reservation
 
 

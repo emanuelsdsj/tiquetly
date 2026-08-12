@@ -1,0 +1,123 @@
+/* Same ticket-stub shape and notch technique as EventCard.css (ADR 0007),
+   here fed by a real reservation instead of a catalog listing. */
+
+.ticket-card {
+  position: relative;
+  background: var(--paper);
+  color: var(--ink-onpaper);
+  border-radius: 8px;
+  overflow: visible;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+}
+
+.ticket-card--used,
+.ticket-card--cancelled {
+  opacity: 0.55;
+}
+
+.ticket-card__info {
+  padding: 20px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticket-card__tag {
+  align-self: flex-start;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+  color: #201a10;
+}
+
+.ticket-card__tag--show {
+  background: var(--marquee-gold);
+}
+
+.ticket-card__tag--movie {
+  background: var(--screen-teal);
+  color: #0d1f1d;
+}
+
+.ticket-card__title {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  line-height: 1.05;
+  margin: 4px 0 0;
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+
+.ticket-card__venue {
+  font-size: 0.86rem;
+  color: #5b4e3a;
+  margin: 0;
+}
+
+.ticket-card__seat {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+.ticket-card__status {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #9c4a3a;
+}
+
+.ticket-card__seam {
+  position: relative;
+  border-top: 2px dashed var(--stub-line);
+}
+
+.ticket-card__seam::before,
+.ticket-card__seam::after {
+  content: '';
+  position: absolute;
+  top: -11px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+.ticket-card__seam::before {
+  left: -11px;
+}
+
+.ticket-card__seam::after {
+  right: -11px;
+}
+
+.ticket-card__action {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.ticket-card__qr {
+  width: 148px;
+  height: 148px;
+  image-rendering: pixelated;
+  border-radius: 4px;
+}
+
+.ticket-card__code {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: #5b4e3a;
+  text-align: center;
+  word-break: break-all;
+}

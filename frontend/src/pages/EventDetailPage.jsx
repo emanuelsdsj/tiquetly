@@ -122,7 +122,8 @@ export function EventDetailPage() {
             reservation.status === 'paid' ? (
               <p className="event-detail-page__confirmation">
                 Pagamento aprovado! {reservation.quantity}{' '}
-                {reservation.quantity === 1 ? 'ingresso confirmado' : 'ingressos confirmados'}.
+                {reservation.quantity === 1 ? 'ingresso confirmado' : 'ingressos confirmados'}. Veja
+                em <Link to="/meus-ingressos">Meus ingressos</Link>.
               </p>
             ) : (
               <>
@@ -192,7 +193,8 @@ export function EventDetailPage() {
               <p className="event-detail-page__confirmation">
                 Pagamento aprovado! Assento{selectedSeatLabels.includes(',') ? 's' : ''}{' '}
                 {selectedSeatLabels || 'selecionado'} confirmado
-                {selectedSeatLabels.includes(',') ? 's' : ''}.
+                {selectedSeatLabels.includes(',') ? 's' : ''}. Veja em{' '}
+                <Link to="/meus-ingressos">Meus ingressos</Link>.
               </p>
             ) : (
               <>

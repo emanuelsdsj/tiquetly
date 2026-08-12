@@ -1,7 +1,14 @@
 import pytest
 
-from app.core.errors import InvalidCredentialsError
-from app.core.security import create_access_token, decode_access_token, hash_password, verify_password
+from app.core.errors import InvalidCredentialsError, InvalidTicketSignatureError
+from app.core.security import (
+    build_qr_payload,
+    create_access_token,
+    decode_access_token,
+    hash_password,
+    verify_password,
+    verify_qr_payload,
+)
 
 
 def test_hash_password_is_not_the_plain_password():
@@ -27,3 +34,29 @@ def test_decode_rejects_a_tampered_token():
 
     with pytest.raises(InvalidCredentialsError):
         decode_access_token(tampered)
+
+
+def test_qr_payload_roundtrip():
+    payload = build_qr_payload("abc-123")
+
+    assert verify_qr_payload(payload) == "abc-123"
+
+
+def test_qr_payload_rejects_a_tampered_signature():
+    payload = build_qr_payload("abc-123")
+    tampered = payload[:-1] + ("a" if payload[-1] != "a" else "b")
+
+    with pytest.raises(InvalidTicketSignatureError):
+        verify_qr_payload(tampered)
+
+
+def test_qr_payload_rejects_a_public_code_with_someone_elses_signature():
+    _, signature = build_qr_payload("abc-123").split(".", 1)
+
+    with pytest.raises(InvalidTicketSignatureError):
+        verify_qr_payload(f"different-code.{signature}")
+
+
+def test_qr_payload_rejects_a_malformed_payload():
+    with pytest.raises(InvalidTicketSignatureError):
+        verify_qr_payload("not-a-valid-payload")

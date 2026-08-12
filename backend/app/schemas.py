@@ -1,8 +1,18 @@
+import uuid
 from datetime import datetime
 
 from pydantic import BaseModel, EmailStr, Field, model_validator
 
-from app.models import EventCategory, EventSource, EventStatus, ReservationMode, ReservationStatus, SeatStatus, UserRole
+from app.models import (
+    EventCategory,
+    EventSource,
+    EventStatus,
+    ReservationMode,
+    ReservationStatus,
+    SeatStatus,
+    TicketStatus,
+    UserRole,
+)
 
 
 class UserCreate(BaseModel):
@@ -104,3 +114,21 @@ class PaymentCreate(BaseModel):
     card_holder: str = Field(min_length=1)
     expiry: str = Field(min_length=1)
     cvv: str = Field(min_length=1)
+
+
+class TicketRead(BaseModel):
+    # Assembled by ticket_service, not converted straight from the Ticket
+    # table (unlike EventRead/ReservationRead): a ticket display needs its
+    # event and seat joined in, plus a QR payload/image that only exist as
+    # derived values, none of which the Ticket row itself carries.
+    id: int
+    reservation_id: int
+    status: TicketStatus
+    seat_id: int | None
+    public_code: uuid.UUID
+    qr_payload: str
+    qr_image: str
+    used_at: datetime | None
+    created_at: datetime
+    event: EventRead
+    seat: SeatRead | None = None

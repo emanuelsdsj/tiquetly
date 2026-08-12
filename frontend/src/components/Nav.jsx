@@ -19,6 +19,7 @@ export function Nav() {
       <div className="nav__links">
         {user ? (
           <>
+            <Link to="/meus-ingressos">Meus ingressos</Link>
             <span className="nav__user">{user.name}</span>
             <button type="button" className="nav__link-button" onClick={handleSignOut}>
               Sair

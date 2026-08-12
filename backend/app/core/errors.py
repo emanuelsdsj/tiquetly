@@ -66,3 +66,12 @@ class InvalidTestCardError(AppError):
     """
 
     status_code = 422
+
+
+class InvalidTicketSignatureError(AppError):
+    """The QR payload is malformed or its signature does not match what
+    `sign_ticket_code` would produce for the embedded public_code: either
+    tampered with, or never issued by this server (see ADR 0012).
+    """
+
+    status_code = 422
