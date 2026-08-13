@@ -1,7 +1,36 @@
 .event-detail-page {
-  max-width: 640px;
+  max-width: 1040px;
   margin: 0 auto;
   padding: 48px 24px 80px;
+}
+
+/* Two columns above the breakpoint (info left, reserve/seat map right, per
+   the user's request to give the seat map room instead of stacking it
+   under a narrow single column like the rest of the page used to). Below
+   it, the reserve column would be too cramped next to the info column, so
+   it drops back to the original stacked layout. */
+.event-detail-page__layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.event-detail-page__info {
+  flex: 1 1 320px;
+  min-width: 280px;
+}
+
+.event-detail-page__reserve-column {
+  flex: 1 1 480px;
+  min-width: 320px;
+  max-width: 520px;
+}
+
+@media (max-width: 720px) {
+  .event-detail-page__reserve-column {
+    max-width: none;
+  }
 }
 
 .event-detail-page__tag {

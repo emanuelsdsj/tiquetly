@@ -97,6 +97,8 @@ export const ptBR = {
     validate: 'Validar',
     validateNext: 'Validar próximo',
     cameraError: 'Não foi possível acessar a câmera. Use a entrada manual.',
+    waitingForScan: 'Leia um QR code ou digite um código de ingresso pra ver o resultado aqui.',
+    pausedAfterValidation: 'Leitura pausada. Toque em "Validar próximo" pra checar outro ingresso.',
     outcomeLabel: {
       valid: 'Ingresso válido',
       invalid: 'Ingresso inválido',

@@ -2,7 +2,7 @@
    tables and forms, not tickets. */
 
 .organizer-page {
-  max-width: 900px;
+  max-width: 1080px;
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
@@ -178,6 +178,22 @@
   gap: 6px;
   font-size: 0.85rem;
   color: var(--ink-muted);
+}
+
+/* Two columns above the breakpoint so editing doesn't turn into one long
+   scroll of stacked fields now that the page has the width to spare;
+   wraps to a single column, same as the fields inside it already do. */
+.organizer-event__form-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.organizer-event__form-col {
+  flex: 1 1 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .organizer-event__form input,

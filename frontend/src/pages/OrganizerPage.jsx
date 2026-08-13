@@ -198,61 +198,67 @@ export function OrganizerPage() {
                     handleSave(event.id)
                   }}
                 >
-                  <label>
-                    {t('organizer.formTitle')}
-                    <input
-                      type="text"
-                      value={form.title}
-                      onChange={(e) => setForm({ ...form, title: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <label>
-                    {t('organizer.formDescription')}
-                    <textarea
-                      value={form.description}
-                      onChange={(e) => setForm({ ...form, description: e.target.value })}
-                      rows={3}
-                    />
-                  </label>
-                  <label>
-                    {t('organizer.formImage')}
-                    <input
-                      type="text"
-                      value={form.image}
-                      onChange={(e) => setForm({ ...form, image: e.target.value })}
-                    />
-                  </label>
-                  <label>
-                    {t('organizer.formVenue')}
-                    <input
-                      type="text"
-                      value={form.venue}
-                      onChange={(e) => setForm({ ...form, venue: e.target.value })}
-                      required
-                    />
-                  </label>
-                  <div className="organizer-event__form-row">
-                    <label>
-                      {t('organizer.formDateTime')}
-                      <input
-                        type="datetime-local"
-                        value={form.date}
-                        onChange={(e) => setForm({ ...form, date: e.target.value })}
-                        required
-                      />
-                    </label>
-                    <label>
-                      {t('organizer.formPrice')}
-                      <input
-                        type="number"
-                        min="0"
-                        step="0.01"
-                        value={form.price}
-                        onChange={(e) => setForm({ ...form, price: e.target.value })}
-                        required
-                      />
-                    </label>
+                  <div className="organizer-event__form-columns">
+                    <div className="organizer-event__form-col">
+                      <label>
+                        {t('organizer.formTitle')}
+                        <input
+                          type="text"
+                          value={form.title}
+                          onChange={(e) => setForm({ ...form, title: e.target.value })}
+                          required
+                        />
+                      </label>
+                      <label>
+                        {t('organizer.formVenue')}
+                        <input
+                          type="text"
+                          value={form.venue}
+                          onChange={(e) => setForm({ ...form, venue: e.target.value })}
+                          required
+                        />
+                      </label>
+                      <div className="organizer-event__form-row">
+                        <label>
+                          {t('organizer.formDateTime')}
+                          <input
+                            type="datetime-local"
+                            value={form.date}
+                            onChange={(e) => setForm({ ...form, date: e.target.value })}
+                            required
+                          />
+                        </label>
+                        <label>
+                          {t('organizer.formPrice')}
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={form.price}
+                            onChange={(e) => setForm({ ...form, price: e.target.value })}
+                            required
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="organizer-event__form-col">
+                      <label>
+                        {t('organizer.formDescription')}
+                        <textarea
+                          value={form.description}
+                          onChange={(e) => setForm({ ...form, description: e.target.value })}
+                          rows={5}
+                        />
+                      </label>
+                      <label>
+                        {t('organizer.formImage')}
+                        <input
+                          type="text"
+                          value={form.image}
+                          onChange={(e) => setForm({ ...form, image: e.target.value })}
+                        />
+                      </label>
+                    </div>
                   </div>
                   <p className="organizer-event__hint">{t('organizer.formHint')}</p>
                   <div className="organizer-event__form-actions">

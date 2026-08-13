@@ -159,78 +159,90 @@ export function GatePage() {
       )}
 
       {eventId && (
-        <>
-          <div className="gate-page__mode" role="group" aria-label={t('gate.modeAriaLabel')}>
-            <button
-              type="button"
-              className={mode === 'camera' ? 'gate-page__mode-button--active' : ''}
-              onClick={() => {
-                setMode('camera')
-                setResult(null)
-              }}
-            >
-              {t('gate.camera')}
-            </button>
-            <button
-              type="button"
-              className={mode === 'manual' ? 'gate-page__mode-button--active' : ''}
-              onClick={() => {
-                setMode('manual')
-                setResult(null)
-              }}
-            >
-              {t('gate.manualEntry')}
-            </button>
-          </div>
-
-          {result ? (
-            <div
-              className={`gate-page__result gate-page__result--${result.outcome === 'valid' ? 'valid' : 'reject'}`}
-            >
-              <h2 className="gate-page__result-title">
-                {t(`gate.outcomeLabel.${result.outcome}`)}
-              </h2>
-              <p className="gate-page__result-detail">
-                {t(`gate.outcomeDetail.${result.outcome}`)}
-              </p>
-              {result.outcome === 'wrong_event' && result.event_title && (
-                <p className="gate-page__result-meta">
-                  {t('gate.eventOfTicket', { title: result.event_title })}
-                </p>
-              )}
-              {result.seat && (
-                <p className="gate-page__result-meta">
-                  {t('gate.seatLabel', { row: result.seat.row, col: result.seat.col })}
-                </p>
-              )}
-              {result.outcome === 'already_used' && result.used_at && (
-                <p className="gate-page__result-meta">
-                  {t('gate.usedAt', { when: formatEventDate(result.used_at, locale) })}
-                </p>
-              )}
-              <button type="button" className="gate-page__next" onClick={handleNext}>
-                {t('gate.validateNext')}
+        <div className="gate-page__layout">
+          <div className="gate-page__controls">
+            <div className="gate-page__mode" role="group" aria-label={t('gate.modeAriaLabel')}>
+              <button
+                type="button"
+                className={mode === 'camera' ? 'gate-page__mode-button--active' : ''}
+                onClick={() => {
+                  setMode('camera')
+                  setResult(null)
+                }}
+              >
+                {t('gate.camera')}
+              </button>
+              <button
+                type="button"
+                className={mode === 'manual' ? 'gate-page__mode-button--active' : ''}
+                onClick={() => {
+                  setMode('manual')
+                  setResult(null)
+                }}
+              >
+                {t('gate.manualEntry')}
               </button>
             </div>
-          ) : mode === 'camera' ? (
-            <div id={READER_ELEMENT_ID} className="gate-page__reader" />
-          ) : (
-            <form className="gate-page__manual" onSubmit={handleManualSubmit}>
-              <input
-                type="text"
-                placeholder={t('gate.codePlaceholder')}
-                value={manualCode}
-                onChange={(changeEvent) => setManualCode(changeEvent.target.value)}
-                autoFocus
-              />
-              <button type="submit" disabled={submitting}>
-                {submitting ? t('gate.validating') : t('gate.validate')}
-              </button>
-            </form>
-          )}
 
-          {error && <p className="gate-page__error">{error}</p>}
-        </>
+            {result ? (
+              <p className="gate-page__paused">{t('gate.pausedAfterValidation')}</p>
+            ) : mode === 'camera' ? (
+              <div id={READER_ELEMENT_ID} className="gate-page__reader" />
+            ) : (
+              <form className="gate-page__manual" onSubmit={handleManualSubmit}>
+                <input
+                  type="text"
+                  placeholder={t('gate.codePlaceholder')}
+                  value={manualCode}
+                  onChange={(changeEvent) => setManualCode(changeEvent.target.value)}
+                  autoFocus
+                />
+                <button type="submit" disabled={submitting}>
+                  {submitting ? t('gate.validating') : t('gate.validate')}
+                </button>
+              </form>
+            )}
+
+            {error && <p className="gate-page__error">{error}</p>}
+          </div>
+
+          <div className="gate-page__result-column">
+            {result ? (
+              <div
+                className={`gate-page__result gate-page__result--${result.outcome === 'valid' ? 'valid' : 'reject'}`}
+              >
+                <h2 className="gate-page__result-title">
+                  {t(`gate.outcomeLabel.${result.outcome}`)}
+                </h2>
+                <p className="gate-page__result-detail">
+                  {t(`gate.outcomeDetail.${result.outcome}`)}
+                </p>
+                {result.outcome === 'wrong_event' && result.event_title && (
+                  <p className="gate-page__result-meta">
+                    {t('gate.eventOfTicket', { title: result.event_title })}
+                  </p>
+                )}
+                {result.seat && (
+                  <p className="gate-page__result-meta">
+                    {t('gate.seatLabel', { row: result.seat.row, col: result.seat.col })}
+                  </p>
+                )}
+                {result.outcome === 'already_used' && result.used_at && (
+                  <p className="gate-page__result-meta">
+                    {t('gate.usedAt', { when: formatEventDate(result.used_at, locale) })}
+                  </p>
+                )}
+                <button type="button" className="gate-page__next" onClick={handleNext}>
+                  {t('gate.validateNext')}
+                </button>
+              </div>
+            ) : (
+              <div className="gate-page__result-placeholder">
+                <p>{t('gate.waitingForScan')}</p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </main>
   )

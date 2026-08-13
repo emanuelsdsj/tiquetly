@@ -97,6 +97,8 @@ export const en = {
     validate: 'Validate',
     validateNext: 'Validate next',
     cameraError: 'Could not access the camera. Use manual entry.',
+    waitingForScan: 'Scan a QR code or type a ticket code to see the result here.',
+    pausedAfterValidation: 'Scanning paused. Tap "Validate next" to check another ticket.',
     outcomeLabel: {
       valid: 'Valid ticket',
       invalid: 'Invalid ticket',

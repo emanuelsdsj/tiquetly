@@ -2,7 +2,7 @@
    note), plain raised surfaces like the auth forms. */
 
 .gate-page {
-  max-width: 480px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
@@ -36,6 +36,47 @@
   font-size: 0.85rem;
   color: var(--ink-muted);
   margin-bottom: 20px;
+  max-width: 480px;
+}
+
+/* Scanner/manual entry on the left, the outcome on the right: the gate
+   staff can see both the input and the result at once instead of the
+   result replacing the input in place. Wraps to stacked below the
+   breakpoint, same pattern as the event detail and create-event pages. */
+.gate-page__layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.gate-page__controls,
+.gate-page__result-column {
+  flex: 1 1 340px;
+  min-width: 300px;
+}
+
+.gate-page__paused {
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+  padding: 24px;
+  background: var(--ink-raised);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.gate-page__result-placeholder {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+  background: var(--ink-raised);
+  border: 1px dashed var(--stub-line);
+  border-radius: 8px;
+  padding: 24px;
 }
 
 .gate-page__field select {
