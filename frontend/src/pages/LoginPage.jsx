@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { PasswordField } from '../components/PasswordField'
+import { translateApiError } from '../lib/apiErrors'
 import './AuthForm.css'
 
 export function LoginPage() {
@@ -11,6 +13,7 @@ export function LoginPage() {
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const { signIn } = useAuth()
+  const { t } = useLocale()
   const navigate = useNavigate()
 
   async function handleSubmit(event) {
@@ -22,7 +25,7 @@ export function LoginPage() {
       signIn(accessToken)
       navigate('/')
     } catch (err) {
-      setError(err.message)
+      setError(translateApiError(err, t))
     } finally {
       setSubmitting(false)
     }
@@ -30,10 +33,10 @@ export function LoginPage() {
 
   return (
     <main className="auth-page">
-      <h1 className="auth-page__title">Entrar</h1>
+      <h1 className="auth-page__title">{t('auth.login.title')}</h1>
       <form className="auth-form" onSubmit={handleSubmit}>
         <label>
-          E-mail
+          {t('auth.login.email')}
           <input
             type="email"
             value={email}
@@ -42,18 +45,18 @@ export function LoginPage() {
           />
         </label>
         <PasswordField
-          label="Senha"
+          label={t('auth.login.password')}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           autoComplete="current-password"
         />
         {error && <p className="auth-page__error">{error}</p>}
         <button type="submit" disabled={submitting}>
-          {submitting ? 'Entrando...' : 'Entrar'}
+          {submitting ? t('auth.login.submitting') : t('auth.login.submit')}
         </button>
       </form>
       <p className="auth-page__switch">
-        Ainda não tem conta? <Link to="/registrar">Criar conta</Link>
+        {t('auth.login.noAccount')} <Link to="/registrar">{t('auth.login.createAccount')}</Link>
       </p>
     </main>
   )

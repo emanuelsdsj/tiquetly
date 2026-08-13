@@ -19,14 +19,14 @@ def get_current_user(
     payload = decode_access_token(token)
     user = session.get(User, int(payload["sub"]))
     if user is None:
-        raise InvalidCredentialsError("user no longer exists")
+        raise InvalidCredentialsError("AUTH_USER_NOT_FOUND", "user no longer exists")
     return user
 
 
 def require_role(*roles: UserRole):
     def dependency(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in roles:
-            raise ForbiddenError("not allowed for this role")
+            raise ForbiddenError("FORBIDDEN_ROLE", "not allowed for this role")
         return current_user
 
     return dependency

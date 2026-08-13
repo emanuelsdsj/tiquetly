@@ -4,10 +4,13 @@ import { cancelReservation } from '../api/reservations'
 import { getMyTickets } from '../api/tickets'
 import { TicketCard } from '../components/TicketCard'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
+import { translateApiError } from '../lib/apiErrors'
 import './MyTicketsPage.css'
 
 export function MyTicketsPage() {
   const { token, user } = useAuth()
+  const { t } = useLocale()
   const [tickets, setTickets] = useState(null)
   const [error, setError] = useState(null)
   const [cancellingId, setCancellingId] = useState(null)
@@ -17,15 +20,14 @@ export function MyTicketsPage() {
     if (!token) return
     getMyTickets(token)
       .then(setTickets)
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(translateApiError(err, t)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
   async function handleCancel(reservationId) {
     const count = tickets.filter((ticket) => ticket.reservation_id === reservationId).length
     const confirmed = window.confirm(
-      count > 1
-        ? `Cancelar essa reserva? Os ${count} ingressos dela deixam de valer.`
-        : 'Cancelar essa reserva? O ingresso deixa de valer.',
+      count > 1 ? t('myTickets.confirmCancelMany', { count }) : t('myTickets.confirmCancelOne'),
     )
     if (!confirmed) return
 
@@ -39,7 +41,7 @@ export function MyTicketsPage() {
         ),
       )
     } catch (err) {
-      setCancelError(err.message)
+      setCancelError(translateApiError(err, t))
     } finally {
       setCancellingId(null)
     }
@@ -48,23 +50,22 @@ export function MyTicketsPage() {
   return (
     <main className="my-tickets-page">
       <header className="my-tickets-page__head">
-        <h1 className="my-tickets-page__title">Meus ingressos</h1>
-        <p className="my-tickets-page__subtitle">
-          Seus ingressos confirmados, com QR pra portaria.
-        </p>
+        <h1 className="my-tickets-page__title">{t('myTickets.title')}</h1>
+        <p className="my-tickets-page__subtitle">{t('myTickets.subtitle')}</p>
       </header>
 
       {!user ? (
         <p className="my-tickets-page__state">
-          <Link to="/entrar">Entre</Link> para ver seus ingressos.
+          <Link to="/entrar">{t('common.signInLinkText')}</Link> {t('myTickets.toViewTickets')}
         </p>
       ) : error ? (
         <p className="my-tickets-page__state my-tickets-page__state--error">{error}</p>
       ) : tickets === null ? (
-        <p className="my-tickets-page__state">Carregando ingressos...</p>
+        <p className="my-tickets-page__state">{t('myTickets.loading')}</p>
       ) : tickets.length === 0 ? (
         <p className="my-tickets-page__state">
-          Você ainda não tem ingressos. <Link to="/">Encontre um evento</Link> e reserve seu lugar.
+          {t('myTickets.emptyPrefix')} <Link to="/">{t('myTickets.findEventLinkText')}</Link>{' '}
+          {t('myTickets.emptySuffix')}
         </p>
       ) : (
         <>

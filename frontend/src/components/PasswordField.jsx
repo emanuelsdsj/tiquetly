@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useLocale } from '../context/LocaleContext'
 import './PasswordField.css'
 
 export function PasswordField({ label, value, onChange, minLength, autoComplete }) {
   const [visible, setVisible] = useState(false)
+  const { t } = useLocale()
 
   return (
     <label className="password-field">
@@ -20,9 +22,9 @@ export function PasswordField({ label, value, onChange, minLength, autoComplete 
           type="button"
           className="password-field__toggle"
           onClick={() => setVisible((current) => !current)}
-          aria-label={visible ? 'Ocultar senha' : 'Mostrar senha'}
+          aria-label={visible ? t('passwordField.hideAria') : t('passwordField.showAria')}
         >
-          {visible ? 'Ocultar' : 'Mostrar'}
+          {visible ? t('passwordField.hide') : t('passwordField.show')}
         </button>
       </span>
     </label>

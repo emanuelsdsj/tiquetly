@@ -24,7 +24,9 @@ class TicketmasterProvider:
 
     def search(self, keyword: str | None = None) -> list[CatalogEvent]:
         if not settings.ticketmaster_api_key:
-            raise CatalogProviderError("Ticketmaster API key is not configured")
+            raise CatalogProviderError(
+                "CATALOG_API_KEY_MISSING", "Ticketmaster API key is not configured", provider="Ticketmaster"
+            )
 
         params: dict[str, Any] = {
             "apikey": settings.ticketmaster_api_key,
@@ -38,7 +40,9 @@ class TicketmasterProvider:
             response = self._client.get(TICKETMASTER_EVENTS_URL, params=params)
             response.raise_for_status()
         except httpx.HTTPError as exc:
-            raise CatalogProviderError(f"Ticketmaster request failed: {exc}") from exc
+            raise CatalogProviderError(
+                "CATALOG_REQUEST_FAILED", f"Ticketmaster request failed: {exc}", provider="Ticketmaster"
+            ) from exc
 
         payload = response.json()
         raw_events = payload.get("_embedded", {}).get("events", [])

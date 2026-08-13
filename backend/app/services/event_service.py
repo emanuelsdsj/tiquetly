@@ -100,7 +100,9 @@ def update_event(session: Session, organizer: User, event_id: int, data: EventUp
 def unpublish_event(session: Session, organizer: User, event_id: int) -> Event:
     event = _get_owned_event(session, organizer, event_id)
     if event.status != EventStatus.published:
-        raise EventNotPublishedError(f"event {event_id} is not published")
+        raise EventNotPublishedError(
+            "EVENT_NOT_PUBLISHED", f"event {event_id} is not published", event_id=str(event_id)
+        )
 
     event.status = EventStatus.cancelled
     session.add(event)
@@ -112,16 +114,16 @@ def unpublish_event(session: Session, organizer: User, event_id: int) -> Event:
 def _get_owned_event(session: Session, organizer: User, event_id: int) -> Event:
     event = session.get(Event, event_id)
     if event is None:
-        raise EventNotFoundError(f"event {event_id} not found")
+        raise EventNotFoundError("EVENT_NOT_FOUND", f"event {event_id} not found", event_id=str(event_id))
     if event.organizer_id != organizer.id:
-        raise ForbiddenError("this event belongs to another organizer")
+        raise ForbiddenError("FORBIDDEN_NOT_EVENT_OWNER", "this event belongs to another organizer")
     return event
 
 
 def list_event_seats(session: Session, event_id: int) -> list[Seat]:
     event = session.get(Event, event_id)
     if event is None or event.status != EventStatus.published:
-        raise EventNotFoundError(f"event {event_id} not found")
+        raise EventNotFoundError("EVENT_NOT_FOUND", f"event {event_id} not found", event_id=str(event_id))
 
     statement = select(Seat).where(Seat.event_id == event_id)
     seats = list(session.exec(statement).all())

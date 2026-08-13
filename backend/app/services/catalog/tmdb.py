@@ -26,7 +26,7 @@ class TmdbProvider:
 
     def search(self, keyword: str | None = None) -> list[CatalogEvent]:
         if not settings.tmdb_api_key:
-            raise CatalogProviderError("TMDb API key is not configured")
+            raise CatalogProviderError("CATALOG_API_KEY_MISSING", "TMDb API key is not configured", provider="TMDb")
 
         if keyword:
             url, params = TMDB_SEARCH_URL, {"api_key": settings.tmdb_api_key, "query": keyword}
@@ -37,7 +37,9 @@ class TmdbProvider:
             response = self._client.get(url, params=params)
             response.raise_for_status()
         except httpx.HTTPError as exc:
-            raise CatalogProviderError(f"TMDb request failed: {exc}") from exc
+            raise CatalogProviderError(
+                "CATALOG_REQUEST_FAILED", f"TMDb request failed: {exc}", provider="TMDb"
+            ) from exc
 
         results = response.json().get("results", [])
         return [self._normalize(movie) for movie in results]

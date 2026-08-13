@@ -1,12 +1,11 @@
 import { useState } from 'react'
+import { useLocale } from '../context/LocaleContext'
 import { formatEventDate } from '../lib/format'
 import './TicketCard.css'
 
-const CATEGORY_LABEL = { show: 'Show', movie: 'Filme' }
-const STATUS_LABEL = { valid: 'Válido', used: 'Utilizado', cancelled: 'Cancelado' }
-
 export function TicketCard({ ticket, onCancel, cancelling }) {
   const { event, seat } = ticket
+  const { t, locale } = useLocale()
   const [copied, setCopied] = useState(false)
 
   function handleShare() {
@@ -21,17 +20,19 @@ export function TicketCard({ ticket, onCancel, cancelling }) {
     <article className={`ticket-card ticket-card--${ticket.status}`}>
       <div className="ticket-card__info">
         <span className={`ticket-card__tag ticket-card__tag--${event.category}`}>
-          {CATEGORY_LABEL[event.category]}
+          {t(`common.category.${event.category}`)}
         </span>
         <h3 className="ticket-card__title">{event.title}</h3>
         <p className="ticket-card__venue">
-          {event.venue} · {formatEventDate(event.date)}
+          {event.venue} · {formatEventDate(event.date, locale)}
         </p>
         <p className="ticket-card__seat">
-          {seat ? `Assento ${seat.row}${seat.col}` : 'Ingresso avulso'}
+          {seat
+            ? t('ticketCard.seatLabel', { row: seat.row, col: seat.col })
+            : t('ticketCard.looseTicket')}
         </p>
         {ticket.status !== 'valid' && (
-          <span className="ticket-card__status">{STATUS_LABEL[ticket.status]}</span>
+          <span className="ticket-card__status">{t(`ticketCard.status.${ticket.status}`)}</span>
         )}
       </div>
       <div className="ticket-card__seam" aria-hidden="true" />
@@ -39,7 +40,7 @@ export function TicketCard({ ticket, onCancel, cancelling }) {
         <img className="ticket-card__qr" src={ticket.qr_image} alt="" />
         <span className="ticket-card__code">{ticket.public_code}</span>
         <button type="button" className="ticket-card__share" onClick={handleShare}>
-          {copied ? 'Link copiado!' : 'Copiar link para compartilhar'}
+          {copied ? t('ticketCard.copied') : t('ticketCard.copyLink')}
         </button>
         {onCancel && ticket.status === 'valid' && (
           <button
@@ -48,7 +49,7 @@ export function TicketCard({ ticket, onCancel, cancelling }) {
             onClick={onCancel}
             disabled={cancelling}
           >
-            {cancelling ? 'Cancelando...' : 'Cancelar reserva'}
+            {cancelling ? t('ticketCard.cancelling') : t('ticketCard.cancelReservation')}
           </button>
         )}
       </div>

@@ -3,18 +3,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import { searchCatalog } from '../api/catalog'
 import { createEvent } from '../api/events'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
+import { translateApiError } from '../lib/apiErrors'
 import { formatEventDate, toDatetimeLocalValue } from '../lib/format'
 import './CreateEventPage.css'
 
 const CATEGORIES = [
-  { value: 'show', label: 'Show', reservationMode: 'general' },
-  { value: 'movie', label: 'Filme', reservationMode: 'seatmap' },
+  { value: 'show', reservationMode: 'general' },
+  { value: 'movie', reservationMode: 'seatmap' },
 ]
-
-const RESERVATION_MODE_LABEL = {
-  general: 'Por quantidade (pista/setor)',
-  seatmap: 'Mapa de assentos',
-}
 
 function emptyDetailsForm(catalogEvent) {
   return {
@@ -27,6 +24,7 @@ function emptyDetailsForm(catalogEvent) {
 
 export function CreateEventPage() {
   const { token, user } = useAuth()
+  const { t, locale } = useLocale()
   const navigate = useNavigate()
 
   const [category, setCategory] = useState('show')
@@ -54,7 +52,7 @@ export function CreateEventPage() {
       const catalogEvents = await searchCatalog(category, keyword || undefined, token)
       setResults(catalogEvents)
     } catch (err) {
-      setSearchError(err.message)
+      setSearchError(translateApiError(err, t))
     } finally {
       setSearching(false)
     }
@@ -96,7 +94,7 @@ export function CreateEventPage() {
       )
       navigate('/organizador', { state: { createdEventId: created.id } })
     } catch (err) {
-      setSubmitError(err.message)
+      setSubmitError(translateApiError(err, t))
     } finally {
       setSubmitting(false)
     }
@@ -106,7 +104,7 @@ export function CreateEventPage() {
     return (
       <main className="create-event-page">
         <p className="create-event-page__state">
-          <Link to="/entrar">Entre</Link> com uma conta de organizador.
+          <Link to="/entrar">{t('common.signInLinkText')}</Link> {t('createEvent.signInPrefix')}
         </p>
       </main>
     )
@@ -115,7 +113,7 @@ export function CreateEventPage() {
   if (user.role !== 'organizer') {
     return (
       <main className="create-event-page">
-        <p className="create-event-page__state">Esta área é restrita aos organizadores.</p>
+        <p className="create-event-page__state">{t('createEvent.restricted')}</p>
       </main>
     )
   }
@@ -124,13 +122,11 @@ export function CreateEventPage() {
     <main className="create-event-page">
       <header className="create-event-page__head">
         <div>
-          <h1 className="create-event-page__title">Criar evento</h1>
-          <p className="create-event-page__subtitle">
-            Escolha um show ou filme do catálogo e defina os detalhes.
-          </p>
+          <h1 className="create-event-page__title">{t('createEvent.title')}</h1>
+          <p className="create-event-page__subtitle">{t('createEvent.subtitle')}</p>
         </div>
         <Link to="/organizador" className="create-event-page__back">
-          Voltar
+          {t('createEvent.back')}
         </Link>
       </header>
 
@@ -139,7 +135,7 @@ export function CreateEventPage() {
           <div
             className="create-event-page__categories"
             role="group"
-            aria-label="Categoria do evento"
+            aria-label={t('createEvent.categoryAriaLabel')}
           >
             {CATEGORIES.map((option) => (
               <button
@@ -149,7 +145,7 @@ export function CreateEventPage() {
                 onClick={() => selectCategory(option.value)}
                 aria-pressed={category === option.value}
               >
-                {option.label}
+                {t(`createEvent.category.${option.value}`)}
               </button>
             ))}
           </div>
@@ -157,13 +153,17 @@ export function CreateEventPage() {
           <form className="create-event-page__search" onSubmit={handleSearch}>
             <input
               type="search"
-              placeholder={category === 'show' ? 'Buscar artista ou show' : 'Buscar filme'}
+              placeholder={
+                category === 'show'
+                  ? t('createEvent.searchArtistPlaceholder')
+                  : t('createEvent.searchMoviePlaceholder')
+              }
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              aria-label="Buscar no catálogo"
+              aria-label={t('createEvent.searchAriaLabel')}
             />
             <button type="submit" disabled={searching}>
-              {searching ? 'Buscando...' : 'Buscar'}
+              {searching ? t('createEvent.searching') : t('createEvent.search')}
             </button>
           </form>
 
@@ -174,7 +174,7 @@ export function CreateEventPage() {
           )}
 
           {!searchError && results !== null && results.length === 0 && (
-            <p className="create-event-page__state">Nada encontrado. Tente outra palavra-chave.</p>
+            <p className="create-event-page__state">{t('createEvent.notFound')}</p>
           )}
 
           {!searchError && results !== null && results.length > 0 && (
@@ -194,10 +194,10 @@ export function CreateEventPage() {
                     <p className="catalog-result__meta">
                       {[
                         catalogEvent.venue,
-                        catalogEvent.date ? formatEventDate(catalogEvent.date) : null,
+                        catalogEvent.date ? formatEventDate(catalogEvent.date, locale) : null,
                       ]
                         .filter(Boolean)
-                        .join(' · ') || 'Sem data ou local no catálogo'}
+                        .join(' · ') || t('createEvent.noDateOrVenue')}
                     </p>
                   </div>
                   <button
@@ -205,7 +205,7 @@ export function CreateEventPage() {
                     className="catalog-result__select"
                     onClick={() => selectCatalogEvent(catalogEvent)}
                   >
-                    Selecionar
+                    {t('createEvent.select')}
                   </button>
                 </li>
               ))}
@@ -228,17 +228,17 @@ export function CreateEventPage() {
             <div className="catalog-result__info">
               <h3 className="catalog-result__title">{selected.title}</h3>
               <p className="catalog-result__meta">
-                {CATEGORIES.find((c) => c.value === selected.category).label}
+                {t(`createEvent.category.${selected.category}`)}
               </p>
             </div>
             <button type="button" className="catalog-result__select" onClick={backToSearch}>
-              Trocar
+              {t('createEvent.change')}
             </button>
           </div>
 
           <form className="create-event-page__details" onSubmit={handleSubmit}>
             <label>
-              Data e hora
+              {t('createEvent.formDateTime')}
               <input
                 type="datetime-local"
                 value={form.date}
@@ -247,7 +247,7 @@ export function CreateEventPage() {
               />
             </label>
             <label>
-              Local
+              {t('createEvent.formVenue')}
               <input
                 type="text"
                 value={form.venue}
@@ -257,7 +257,7 @@ export function CreateEventPage() {
             </label>
             <div className="create-event-page__details-row">
               <label>
-                Capacidade
+                {t('createEvent.formCapacity')}
                 <input
                   type="number"
                   min="1"
@@ -268,7 +268,7 @@ export function CreateEventPage() {
                 />
               </label>
               <label>
-                Preço
+                {t('createEvent.formPrice')}
                 <input
                   type="number"
                   min="0"
@@ -280,8 +280,9 @@ export function CreateEventPage() {
               </label>
             </div>
             <p className="create-event-page__hint">
-              Modo de reserva: {RESERVATION_MODE_LABEL[reservationMode]}. Definido pela categoria,
-              não pode ser alterado depois.
+              {t('createEvent.reservationModeHint', {
+                mode: t(`createEvent.reservationMode.${reservationMode}`),
+              })}
             </p>
 
             {submitError && (
@@ -291,7 +292,7 @@ export function CreateEventPage() {
             )}
 
             <button type="submit" className="create-event-page__publish" disabled={submitting}>
-              {submitting ? 'Publicando...' : 'Publicar evento'}
+              {submitting ? t('createEvent.publishing') : t('createEvent.publish')}
             </button>
           </form>
         </>

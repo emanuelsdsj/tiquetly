@@ -4,24 +4,12 @@ import { Link } from 'react-router-dom'
 import { searchEvents } from '../api/events'
 import { validateTicket } from '../api/gate'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
+import { translateApiError } from '../lib/apiErrors'
 import { formatEventDate } from '../lib/format'
 import './GatePage.css'
 
 const READER_ELEMENT_ID = 'gate-qr-reader'
-
-const OUTCOME_LABEL = {
-  valid: 'Ingresso válido',
-  invalid: 'Ingresso inválido',
-  already_used: 'Ingresso já utilizado',
-  wrong_event: 'Ingresso de outro evento',
-}
-
-const OUTCOME_DETAIL = {
-  valid: 'Entrada liberada.',
-  invalid: 'Este código não corresponde a nenhum ingresso emitido.',
-  already_used: 'Este ingresso já entrou antes.',
-  wrong_event: 'Este ingresso é para outro evento, não para o selecionado.',
-}
 
 function todayRange() {
   const start = new Date()
@@ -41,12 +29,14 @@ export function GatePage() {
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const scannerRef = useRef(null)
+  const { t, locale } = useLocale()
 
   useEffect(() => {
     if (user?.role !== 'gatekeeper') return
     searchEvents(todayRange())
       .then(setEvents)
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(translateApiError(err, t)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user])
 
   async function submitCode(code) {
@@ -56,7 +46,7 @@ export function GatePage() {
       const data = await validateTicket({ event_id: Number(eventId), code }, token)
       setResult(data)
     } catch (err) {
-      setError(err.message)
+      setError(translateApiError(err, t))
     } finally {
       setSubmitting(false)
     }
@@ -97,7 +87,7 @@ export function GatePage() {
         // of leaving an orphaned camera stream running.
         if (cancelled) stopAndClear()
       })
-      .catch(() => setError('Não foi possível acessar a câmera. Use a entrada manual.'))
+      .catch(() => setError(t('gate.cameraError')))
 
     return () => {
       cancelled = true
@@ -125,7 +115,7 @@ export function GatePage() {
     return (
       <main className="gate-page">
         <p className="gate-page__state">
-          <Link to="/entrar">Entre</Link> com uma conta de portaria.
+          <Link to="/entrar">{t('common.signInLinkText')}</Link> {t('gate.signInPrefix')}
         </p>
       </main>
     )
@@ -134,7 +124,7 @@ export function GatePage() {
   if (user.role !== 'gatekeeper') {
     return (
       <main className="gate-page">
-        <p className="gate-page__state">Esta área é restrita à portaria.</p>
+        <p className="gate-page__state">{t('gate.restricted')}</p>
       </main>
     )
   }
@@ -142,12 +132,12 @@ export function GatePage() {
   return (
     <main className="gate-page">
       <header className="gate-page__head">
-        <h1 className="gate-page__title">Portaria</h1>
-        <p className="gate-page__subtitle">Escolha o evento e valide os ingressos na entrada.</p>
+        <h1 className="gate-page__title">{t('gate.title')}</h1>
+        <p className="gate-page__subtitle">{t('gate.subtitle')}</p>
       </header>
 
       <label className="gate-page__field">
-        Evento
+        {t('gate.eventLabel')}
         <select
           value={eventId}
           onChange={(changeEvent) => {
@@ -155,7 +145,7 @@ export function GatePage() {
             setResult(null)
           }}
         >
-          <option value="">Selecione um evento</option>
+          <option value="">{t('gate.selectEvent')}</option>
           {events?.map((event) => (
             <option key={event.id} value={event.id}>
               {event.title} · {event.venue}
@@ -165,12 +155,12 @@ export function GatePage() {
       </label>
 
       {events && events.length === 0 && (
-        <p className="gate-page__state">Nenhum evento publicado para hoje.</p>
+        <p className="gate-page__state">{t('gate.noEventsToday')}</p>
       )}
 
       {eventId && (
         <>
-          <div className="gate-page__mode" role="group" aria-label="Forma de leitura">
+          <div className="gate-page__mode" role="group" aria-label={t('gate.modeAriaLabel')}>
             <button
               type="button"
               className={mode === 'camera' ? 'gate-page__mode-button--active' : ''}
@@ -179,7 +169,7 @@ export function GatePage() {
                 setResult(null)
               }}
             >
-              Câmera
+              {t('gate.camera')}
             </button>
             <button
               type="button"
@@ -189,7 +179,7 @@ export function GatePage() {
                 setResult(null)
               }}
             >
-              Digitar código
+              {t('gate.manualEntry')}
             </button>
           </div>
 
@@ -197,22 +187,29 @@ export function GatePage() {
             <div
               className={`gate-page__result gate-page__result--${result.outcome === 'valid' ? 'valid' : 'reject'}`}
             >
-              <h2 className="gate-page__result-title">{OUTCOME_LABEL[result.outcome]}</h2>
-              <p className="gate-page__result-detail">{OUTCOME_DETAIL[result.outcome]}</p>
+              <h2 className="gate-page__result-title">
+                {t(`gate.outcomeLabel.${result.outcome}`)}
+              </h2>
+              <p className="gate-page__result-detail">
+                {t(`gate.outcomeDetail.${result.outcome}`)}
+              </p>
               {result.outcome === 'wrong_event' && result.event_title && (
-                <p className="gate-page__result-meta">Evento do ingresso: {result.event_title}</p>
+                <p className="gate-page__result-meta">
+                  {t('gate.eventOfTicket', { title: result.event_title })}
+                </p>
               )}
               {result.seat && (
                 <p className="gate-page__result-meta">
-                  Assento {result.seat.row}
-                  {result.seat.col}
+                  {t('gate.seatLabel', { row: result.seat.row, col: result.seat.col })}
                 </p>
               )}
               {result.outcome === 'already_used' && result.used_at && (
-                <p className="gate-page__result-meta">Usado em {formatEventDate(result.used_at)}</p>
+                <p className="gate-page__result-meta">
+                  {t('gate.usedAt', { when: formatEventDate(result.used_at, locale) })}
+                </p>
               )}
               <button type="button" className="gate-page__next" onClick={handleNext}>
-                Validar próximo
+                {t('gate.validateNext')}
               </button>
             </div>
           ) : mode === 'camera' ? (
@@ -221,13 +218,13 @@ export function GatePage() {
             <form className="gate-page__manual" onSubmit={handleManualSubmit}>
               <input
                 type="text"
-                placeholder="Código do ingresso"
+                placeholder={t('gate.codePlaceholder')}
                 value={manualCode}
                 onChange={(changeEvent) => setManualCode(changeEvent.target.value)}
                 autoFocus
               />
               <button type="submit" disabled={submitting}>
-                {submitting ? 'Validando...' : 'Validar'}
+                {submitting ? t('gate.validating') : t('gate.validate')}
               </button>
             </form>
           )}

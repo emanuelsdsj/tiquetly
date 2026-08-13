@@ -29,7 +29,7 @@ def decode_access_token(token: str) -> dict:
     try:
         return jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
     except JWTError as exc:
-        raise InvalidCredentialsError("invalid or expired token") from exc
+        raise InvalidCredentialsError("AUTH_TOKEN_INVALID", "invalid or expired token") from exc
 
 
 def sign_ticket_code(public_code: str) -> str:
@@ -55,7 +55,7 @@ def verify_qr_payload(payload: str) -> str:
     try:
         public_code, signature = payload.rsplit(".", 1)
     except ValueError as exc:
-        raise InvalidTicketSignatureError("malformed ticket code") from exc
+        raise InvalidTicketSignatureError("TICKET_CODE_MALFORMED", "malformed ticket code") from exc
     if not hmac.compare_digest(sign_ticket_code(public_code), signature):
-        raise InvalidTicketSignatureError("ticket signature does not match")
+        raise InvalidTicketSignatureError("TICKET_SIGNATURE_INVALID", "ticket signature does not match")
     return public_code

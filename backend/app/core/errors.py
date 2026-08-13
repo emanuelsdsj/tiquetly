@@ -3,12 +3,20 @@ class AppError(Exception):
 
     Services raise these instead of fastapi.HTTPException, so they stay free of HTTP
     concerns and routes never need a try/except of their own.
+
+    `code` is a stable, machine-readable identifier (e.g. "EVENT_NOT_FOUND") the
+    frontend uses to pick a localized message template; `message` is the English
+    text used for logs, the OpenAPI docs, and as a fallback when the frontend has
+    no template for a code. `params` holds the dynamic values (an id, a status) the
+    frontend interpolates into that template. See ADR 0020.
     """
 
     status_code = 400
 
-    def __init__(self, message: str):
+    def __init__(self, code: str, message: str, **params):
+        self.code = code
         self.message = message
+        self.params = params
         super().__init__(message)
 
 

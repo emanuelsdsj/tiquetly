@@ -59,7 +59,7 @@ def get_public_ticket(session: Session, public_code: uuid.UUID) -> TicketRead:
     """
     ticket = session.exec(select(Ticket).where(Ticket.public_code == public_code)).first()
     if ticket is None:
-        raise TicketNotFoundError(f"ticket {public_code} not found")
+        raise TicketNotFoundError("TICKET_NOT_FOUND", f"ticket {public_code} not found", public_code=str(public_code))
     return _to_ticket_read(session, ticket)
 
 
@@ -71,7 +71,7 @@ def validate_ticket(session: Session, event_id: int, code: str) -> TicketValidat
     the former is signature-checked (ADR 0014).
     """
     if session.get(Event, event_id) is None:
-        raise EventNotFoundError(f"event {event_id} not found")
+        raise EventNotFoundError("EVENT_NOT_FOUND", f"event {event_id} not found", event_id=str(event_id))
 
     if "." in code:
         try:

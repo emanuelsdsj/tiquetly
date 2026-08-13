@@ -34,9 +34,9 @@ DECLINE_CARD_NUMBER = "4000000000000002"
 def create_general_reservation(session: Session, customer: User, event_id: int, quantity: int) -> Reservation:
     event = session.get(Event, event_id)
     if event is None or event.status != EventStatus.published:
-        raise EventNotFoundError(f"event {event_id} not found")
+        raise EventNotFoundError("EVENT_NOT_FOUND", f"event {event_id} not found", event_id=str(event_id))
     if event.reservation_mode != ReservationMode.general:
-        raise WrongReservationModeError("this event sells by seat, not by quantity")
+        raise WrongReservationModeError("WRONG_MODE_EXPECTS_SEATS", "this event sells by seat, not by quantity")
 
     # Single UPDATE, guarded by the capacity check in its own WHERE clause: two
     # concurrent requests racing for the last seats can never both succeed past
@@ -50,7 +50,7 @@ def create_general_reservation(session: Session, customer: User, event_id: int, 
     result = session.execute(statement)
     if result.rowcount == 0:
         session.rollback()
-        raise SoldOutError("not enough capacity left for this event")
+        raise SoldOutError("SOLD_OUT_CAPACITY", "not enough capacity left for this event")
 
     reservation = Reservation(
         event_id=event_id,
@@ -67,9 +67,9 @@ def create_general_reservation(session: Session, customer: User, event_id: int, 
 def create_seatmap_reservation(session: Session, customer: User, event_id: int, seat_ids: list[int]) -> Reservation:
     event = session.get(Event, event_id)
     if event is None or event.status != EventStatus.published:
-        raise EventNotFoundError(f"event {event_id} not found")
+        raise EventNotFoundError("EVENT_NOT_FOUND", f"event {event_id} not found", event_id=str(event_id))
     if event.reservation_mode != ReservationMode.seatmap:
-        raise WrongReservationModeError("this event sells by quantity, not by seat")
+        raise WrongReservationModeError("WRONG_MODE_EXPECTS_QUANTITY", "this event sells by quantity, not by seat")
 
     unique_seat_ids = list(dict.fromkeys(seat_ids))
 
@@ -91,7 +91,7 @@ def create_seatmap_reservation(session: Session, customer: User, event_id: int, 
     result = session.execute(statement)
     if result.rowcount != len(unique_seat_ids):
         session.rollback()
-        raise SoldOutError("one or more selected seats are no longer available")
+        raise SoldOutError("SOLD_OUT_SEATS", "one or more selected seats are no longer available")
 
     reservation = Reservation(
         event_id=event_id,
@@ -113,11 +113,17 @@ def create_seatmap_reservation(session: Session, customer: User, event_id: int, 
 def pay_reservation(session: Session, customer: User, reservation_id: int, card_number: str) -> Reservation:
     reservation = session.get(Reservation, reservation_id)
     if reservation is None:
-        raise ReservationNotFoundError(f"reservation {reservation_id} not found")
+        raise ReservationNotFoundError(
+            "RESERVATION_NOT_FOUND", f"reservation {reservation_id} not found", reservation_id=str(reservation_id)
+        )
     if reservation.customer_id != customer.id:
-        raise ForbiddenError("this reservation belongs to another customer")
+        raise ForbiddenError("FORBIDDEN_NOT_RESERVATION_OWNER", "this reservation belongs to another customer")
     if reservation.status != ReservationStatus.pending:
-        raise ReservationNotPendingError(f"reservation is already {reservation.status.value}")
+        raise ReservationNotPendingError(
+            "RESERVATION_NOT_PENDING",
+            f"reservation is already {reservation.status.value}",
+            status=reservation.status.value,
+        )
 
     normalized_card_number = card_number.replace(" ", "")
     if normalized_card_number == APPROVE_CARD_NUMBER:
@@ -127,8 +133,11 @@ def pay_reservation(session: Session, customer: User, reservation_id: int, card_
         _release_held_stock(session, reservation)
     else:
         raise InvalidTestCardError(
+            "INVALID_TEST_CARD",
             f"unrecognized test card number, use {APPROVE_CARD_NUMBER} (approves) "
-            f"or {DECLINE_CARD_NUMBER} (declines)"
+            f"or {DECLINE_CARD_NUMBER} (declines)",
+            approve_card=APPROVE_CARD_NUMBER,
+            decline_card=DECLINE_CARD_NUMBER,
         )
 
     session.add(reservation)
@@ -144,11 +153,17 @@ def pay_reservation(session: Session, customer: User, reservation_id: int, card_
 def cancel_reservation(session: Session, customer: User, reservation_id: int) -> Reservation:
     reservation = session.get(Reservation, reservation_id)
     if reservation is None:
-        raise ReservationNotFoundError(f"reservation {reservation_id} not found")
+        raise ReservationNotFoundError(
+            "RESERVATION_NOT_FOUND", f"reservation {reservation_id} not found", reservation_id=str(reservation_id)
+        )
     if reservation.customer_id != customer.id:
-        raise ForbiddenError("this reservation belongs to another customer")
+        raise ForbiddenError("FORBIDDEN_NOT_RESERVATION_OWNER", "this reservation belongs to another customer")
     if reservation.status not in (ReservationStatus.pending, ReservationStatus.paid):
-        raise ReservationNotCancellableError(f"reservation is already {reservation.status.value}")
+        raise ReservationNotCancellableError(
+            "RESERVATION_NOT_CANCELLABLE_STATUS",
+            f"reservation is already {reservation.status.value}",
+            status=reservation.status.value,
+        )
 
     if reservation.status == ReservationStatus.paid:
         ticket_ids = session.exec(select(Ticket.id).where(Ticket.reservation_id == reservation.id)).all()
@@ -165,7 +180,9 @@ def cancel_reservation(session: Session, customer: User, reservation_id: int) ->
         result = session.execute(statement)
         if result.rowcount != len(ticket_ids):
             session.rollback()
-            raise ReservationNotCancellableError("one or more tickets from this reservation were already used")
+            raise ReservationNotCancellableError(
+                "RESERVATION_NOT_CANCELLABLE_USED", "one or more tickets from this reservation were already used"
+            )
 
     reservation.status = ReservationStatus.cancelled
     session.add(reservation)

@@ -9,7 +9,9 @@ from app.schemas import UserCreate
 def register_customer(session: Session, data: UserCreate) -> User:
     existing = session.exec(select(User).where(User.email == data.email)).first()
     if existing:
-        raise EmailAlreadyRegisteredError(f"email {data.email} is already registered")
+        raise EmailAlreadyRegisteredError(
+            "EMAIL_ALREADY_REGISTERED", f"email {data.email} is already registered", email=data.email
+        )
 
     user = User(
         email=data.email,
@@ -26,5 +28,5 @@ def register_customer(session: Session, data: UserCreate) -> User:
 def authenticate_user(session: Session, email: str, password: str) -> User:
     user = session.exec(select(User).where(User.email == email)).first()
     if not user or not verify_password(password, user.hashed_password):
-        raise InvalidCredentialsError("invalid email or password")
+        raise InvalidCredentialsError("AUTH_INVALID_CREDENTIALS", "invalid email or password")
     return user

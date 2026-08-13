@@ -1,15 +1,22 @@
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
 export class ApiError extends Error {
-  constructor(message, status) {
+  constructor(message, status, code, params) {
     super(message)
     this.status = status
+    this.code = code
+    this.params = params
   }
 }
 
 async function parseErrorAndThrow(response) {
   const body = await response.json().catch(() => ({}))
-  throw new ApiError(body.detail || 'Não foi possível completar a requisição.', response.status)
+  throw new ApiError(
+    body.detail || 'Could not complete the request.',
+    response.status,
+    body.code,
+    body.params,
+  )
 }
 
 export async function apiGet(path, params = {}, { token } = {}) {

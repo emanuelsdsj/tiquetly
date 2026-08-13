@@ -1,14 +1,16 @@
-export function formatEventDate(isoString) {
+export function formatEventDate(isoString, locale = 'pt-BR') {
   const date = new Date(isoString)
-  const datePart = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(date)
-  const timePart = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' }).format(
+  const datePart = new Intl.DateTimeFormat(locale, { day: '2-digit', month: 'short' }).format(date)
+  const timePart = new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(
     date,
   )
   return `${datePart} · ${timePart}`
 }
 
-export function formatPrice(value) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
+// Always BRL: Tiquetly sells in reais regardless of the UI language, only
+// the decimal/thousands separator style follows the locale.
+export function formatPrice(value, locale = 'pt-BR') {
+  return new Intl.NumberFormat(locale, { style: 'currency', currency: 'BRL' }).format(value)
 }
 
 export function toDatetimeLocalValue(isoString) {

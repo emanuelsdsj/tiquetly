@@ -2,11 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { getMyEvents, unpublishEvent, updateEvent } from '../api/events'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
+import { translateApiError } from '../lib/apiErrors'
 import { formatEventDate, formatPrice, toDatetimeLocalValue } from '../lib/format'
 import './OrganizerPage.css'
-
-const CATEGORY_LABEL = { show: 'Show', movie: 'Filme' }
-const STATUS_LABEL = { published: 'Publicado', cancelled: 'Despublicado', draft: 'Rascunho' }
 
 function emptyForm(event) {
   return {
@@ -29,12 +28,14 @@ export function OrganizerPage() {
   const [form, setForm] = useState(null)
   const [savingId, setSavingId] = useState(null)
   const [actionError, setActionError] = useState(null)
+  const { t, locale } = useLocale()
 
   useEffect(() => {
     if (user?.role !== 'organizer') return
     getMyEvents(token)
       .then(setEvents)
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(translateApiError(err, t)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, token])
 
   function startEdit(event) {
@@ -67,22 +68,21 @@ export function OrganizerPage() {
       setEvents((current) => current.map((event) => (event.id === eventId ? updated : event)))
       cancelEdit()
     } catch (err) {
-      setActionError(err.message)
+      setActionError(translateApiError(err, t))
     } finally {
       setSavingId(null)
     }
   }
 
   async function handleUnpublish(event) {
-    if (!window.confirm(`Despublicar "${event.title}"? O evento sai da busca imediatamente.`))
-      return
+    if (!window.confirm(t('organizer.confirmUnpublish', { title: event.title }))) return
     setSavingId(event.id)
     setActionError(null)
     try {
       const updated = await unpublishEvent(event.id, token)
       setEvents((current) => current.map((e) => (e.id === event.id ? updated : e)))
     } catch (err) {
-      setActionError(err.message)
+      setActionError(translateApiError(err, t))
     } finally {
       setSavingId(null)
     }
@@ -92,7 +92,7 @@ export function OrganizerPage() {
     return (
       <main className="organizer-page">
         <p className="organizer-page__state">
-          <Link to="/entrar">Entre</Link> com uma conta de organizador.
+          <Link to="/entrar">{t('common.signInLinkText')}</Link> {t('organizer.signInPrefix')}
         </p>
       </main>
     )
@@ -101,7 +101,7 @@ export function OrganizerPage() {
   if (user.role !== 'organizer') {
     return (
       <main className="organizer-page">
-        <p className="organizer-page__state">Esta área é restrita aos organizadores.</p>
+        <p className="organizer-page__state">{t('organizer.restricted')}</p>
       </main>
     )
   }
@@ -110,16 +110,18 @@ export function OrganizerPage() {
     <main className="organizer-page">
       <header className="organizer-page__head">
         <div>
-          <h1 className="organizer-page__title">Meus eventos</h1>
-          <p className="organizer-page__subtitle">Gerencie os eventos que você publicou.</p>
+          <h1 className="organizer-page__title">{t('organizer.title')}</h1>
+          <p className="organizer-page__subtitle">{t('organizer.subtitle')}</p>
         </div>
         <Link to="/organizador/criar" className="organizer-page__create">
-          Criar evento
+          {t('organizer.createEvent')}
         </Link>
       </header>
 
       {justCreated && (
-        <p className="organizer-page__state organizer-page__state--success">Evento publicado.</p>
+        <p className="organizer-page__state organizer-page__state--success">
+          {t('organizer.published')}
+        </p>
       )}
 
       {error && <p className="organizer-page__state organizer-page__state--error">{error}</p>}
@@ -127,10 +129,12 @@ export function OrganizerPage() {
         <p className="organizer-page__state organizer-page__state--error">{actionError}</p>
       )}
 
-      {!error && events === null && <p className="organizer-page__state">Carregando eventos...</p>}
+      {!error && events === null && (
+        <p className="organizer-page__state">{t('organizer.loading')}</p>
+      )}
 
       {events !== null && events.length === 0 && (
-        <p className="organizer-page__state">Você ainda não publicou nenhum evento.</p>
+        <p className="organizer-page__state">{t('organizer.empty')}</p>
       )}
 
       {events !== null && events.length > 0 && (
@@ -140,19 +144,23 @@ export function OrganizerPage() {
               <div className="organizer-event__row">
                 <div className="organizer-event__info">
                   <span className={`organizer-event__tag organizer-event__tag--${event.category}`}>
-                    {CATEGORY_LABEL[event.category]}
+                    {t(`organizer.category.${event.category}`)}
                   </span>
                   <span
                     className={`organizer-event__status organizer-event__status--${event.status}`}
                   >
-                    {STATUS_LABEL[event.status]}
+                    {t(`organizer.status.${event.status}`)}
                   </span>
                   <h2 className="organizer-event__title">{event.title}</h2>
                   <p className="organizer-event__meta">
-                    {event.venue} · {formatEventDate(event.date)} · {formatPrice(event.price)}
+                    {event.venue} · {formatEventDate(event.date, locale)} ·{' '}
+                    {formatPrice(event.price, locale)}
                   </p>
                   <p className="organizer-event__meta">
-                    {event.reserved_count}/{event.capacity} reservados
+                    {t('organizer.reservedOf', {
+                      reserved: event.reserved_count,
+                      capacity: event.capacity,
+                    })}
                   </p>
                 </div>
                 <div className="organizer-event__actions">
@@ -161,7 +169,7 @@ export function OrganizerPage() {
                     onClick={() => startEdit(event)}
                     disabled={savingId === event.id}
                   >
-                    Editar
+                    {t('organizer.edit')}
                   </button>
                   {event.status === 'published' && (
                     <button
@@ -170,7 +178,9 @@ export function OrganizerPage() {
                       onClick={() => handleUnpublish(event)}
                       disabled={savingId === event.id}
                     >
-                      {savingId === event.id ? 'Despublicando...' : 'Despublicar'}
+                      {savingId === event.id
+                        ? t('organizer.unpublishing')
+                        : t('organizer.unpublish')}
                     </button>
                   )}
                 </div>
@@ -185,7 +195,7 @@ export function OrganizerPage() {
                   }}
                 >
                   <label>
-                    Título
+                    {t('organizer.formTitle')}
                     <input
                       type="text"
                       value={form.title}
@@ -194,7 +204,7 @@ export function OrganizerPage() {
                     />
                   </label>
                   <label>
-                    Descrição
+                    {t('organizer.formDescription')}
                     <textarea
                       value={form.description}
                       onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -202,7 +212,7 @@ export function OrganizerPage() {
                     />
                   </label>
                   <label>
-                    Imagem (URL)
+                    {t('organizer.formImage')}
                     <input
                       type="text"
                       value={form.image}
@@ -210,7 +220,7 @@ export function OrganizerPage() {
                     />
                   </label>
                   <label>
-                    Local
+                    {t('organizer.formVenue')}
                     <input
                       type="text"
                       value={form.venue}
@@ -220,7 +230,7 @@ export function OrganizerPage() {
                   </label>
                   <div className="organizer-event__form-row">
                     <label>
-                      Data e hora
+                      {t('organizer.formDateTime')}
                       <input
                         type="datetime-local"
                         value={form.date}
@@ -229,7 +239,7 @@ export function OrganizerPage() {
                       />
                     </label>
                     <label>
-                      Preço
+                      {t('organizer.formPrice')}
                       <input
                         type="number"
                         min="0"
@@ -240,15 +250,13 @@ export function OrganizerPage() {
                       />
                     </label>
                   </div>
-                  <p className="organizer-event__hint">
-                    Capacidade e categoria não podem ser alteradas depois da publicação.
-                  </p>
+                  <p className="organizer-event__hint">{t('organizer.formHint')}</p>
                   <div className="organizer-event__form-actions">
                     <button type="submit" disabled={savingId === event.id}>
-                      {savingId === event.id ? 'Salvando...' : 'Salvar'}
+                      {savingId === event.id ? t('organizer.saving') : t('organizer.save')}
                     </button>
                     <button type="button" onClick={cancelEdit} className="organizer-event__cancel">
-                      Cancelar
+                      {t('organizer.cancel')}
                     </button>
                   </div>
                 </form>

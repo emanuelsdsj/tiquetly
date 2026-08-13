@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { Outlet, Route, Routes } from 'react-router-dom'
 import { Nav } from './components/Nav'
+import { useLocale } from './context/LocaleContext'
 import { BrowsePage } from './pages/BrowsePage'
 import { CreateEventPage } from './pages/CreateEventPage'
 import { EventDetailPage } from './pages/EventDetailPage'
@@ -25,6 +26,7 @@ function Layout() {
 }
 
 function App() {
+  const { t } = useLocale()
   return (
     <Routes>
       <Route element={<Layout />}>
@@ -37,7 +39,7 @@ function App() {
         <Route
           path="/portaria"
           element={
-            <Suspense fallback={<p className="gate-page__state">Carregando...</p>}>
+            <Suspense fallback={<p className="gate-page__state">{t('common.loading')}</p>}>
               <GatePage />
             </Suspense>
           }

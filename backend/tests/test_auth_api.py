@@ -18,6 +18,9 @@ def test_register_rejects_a_duplicate_email(client):
     response = client.post("/auth/register", json=CREDENTIALS)
 
     assert response.status_code == 409
+    body = response.json()
+    assert body["code"] == "EMAIL_ALREADY_REGISTERED"
+    assert body["params"] == {"email": CREDENTIALS["email"]}
 
 
 def test_login_returns_a_token(client):
@@ -43,6 +46,7 @@ def test_login_rejects_the_wrong_password(client):
     )
 
     assert response.status_code == 401
+    assert response.json()["code"] == "AUTH_INVALID_CREDENTIALS"
 
 
 def test_me_requires_a_token(client):

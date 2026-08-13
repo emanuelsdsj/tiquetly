@@ -123,6 +123,9 @@ def test_reserve_rejects_a_nonexistent_event(client, session):
     )
 
     assert response.status_code == 404
+    body = response.json()
+    assert body["code"] == "EVENT_NOT_FOUND"
+    assert body["params"] == {"event_id": "9999"}
 
 
 def test_reserve_rejects_zero_quantity(client, session):

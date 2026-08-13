@@ -2,7 +2,9 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login, register } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
 import { PasswordField } from '../components/PasswordField'
+import { translateApiError } from '../lib/apiErrors'
 import './AuthForm.css'
 
 export function RegisterPage() {
@@ -12,6 +14,7 @@ export function RegisterPage() {
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const { signIn } = useAuth()
+  const { t } = useLocale()
   const navigate = useNavigate()
 
   async function handleSubmit(event) {
@@ -24,7 +27,7 @@ export function RegisterPage() {
       signIn(accessToken)
       navigate('/')
     } catch (err) {
-      setError(err.message)
+      setError(translateApiError(err, t))
     } finally {
       setSubmitting(false)
     }
@@ -32,10 +35,10 @@ export function RegisterPage() {
 
   return (
     <main className="auth-page">
-      <h1 className="auth-page__title">Criar conta</h1>
+      <h1 className="auth-page__title">{t('auth.register.title')}</h1>
       <form className="auth-form" onSubmit={handleSubmit}>
         <label>
-          Nome
+          {t('auth.register.name')}
           <input
             type="text"
             value={name}
@@ -44,7 +47,7 @@ export function RegisterPage() {
           />
         </label>
         <label>
-          E-mail
+          {t('auth.register.email')}
           <input
             type="email"
             value={email}
@@ -53,7 +56,7 @@ export function RegisterPage() {
           />
         </label>
         <PasswordField
-          label="Senha"
+          label={t('auth.register.password')}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           minLength={6}
@@ -61,11 +64,11 @@ export function RegisterPage() {
         />
         {error && <p className="auth-page__error">{error}</p>}
         <button type="submit" disabled={submitting}>
-          {submitting ? 'Criando conta...' : 'Criar conta'}
+          {submitting ? t('auth.register.submitting') : t('auth.register.submit')}
         </button>
       </form>
       <p className="auth-page__switch">
-        Já tem conta? <Link to="/entrar">Entrar</Link>
+        {t('auth.register.hasAccount')} <Link to="/entrar">{t('auth.register.signIn')}</Link>
       </p>
     </main>
   )

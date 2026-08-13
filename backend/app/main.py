@@ -23,7 +23,10 @@ app.add_middleware(
 
 @app.exception_handler(AppError)
 def handle_app_error(request: Request, exc: AppError) -> JSONResponse:
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.message, "code": exc.code, "params": exc.params},
+    )
 
 
 app.include_router(auth_router)

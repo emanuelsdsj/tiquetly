@@ -5,14 +5,15 @@ import { cancelReservation } from '../api/reservations'
 import { PaymentForm } from '../components/PaymentForm'
 import { SeatMap } from '../components/SeatMap'
 import { useAuth } from '../context/AuthContext'
+import { useLocale } from '../context/LocaleContext'
+import { translateApiError } from '../lib/apiErrors'
 import { formatEventDate, formatPrice } from '../lib/format'
 import './EventDetailPage.css'
-
-const CATEGORY_LABEL = { show: 'Show', movie: 'Filme' }
 
 export function EventDetailPage() {
   const { id } = useParams()
   const { token, user } = useAuth()
+  const { t, locale } = useLocale()
   const [event, setEvent] = useState(null)
   const [error, setError] = useState(null)
   const [quantity, setQuantity] = useState(1)
@@ -30,14 +31,16 @@ export function EventDetailPage() {
     setEvent(null)
     getEvent(id)
       .then(setEvent)
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(translateApiError(err, t)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
 
   useEffect(() => {
     if (event?.reservation_mode !== 'seatmap') return
     getEventSeats(id)
       .then(setSeats)
-      .catch((err) => setError(err.message))
+      .catch((err) => setError(translateApiError(err, t)))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, event])
 
   function toggleSeat(seatId) {
@@ -47,7 +50,7 @@ export function EventDetailPage() {
   }
 
   function handleDeclined() {
-    setDeclinedMessage('Pagamento recusado. O estoque foi liberado, você pode reservar de novo.')
+    setDeclinedMessage(t('eventDetail.declinedPayment'))
     setReservation(null)
     setSelectedSeatIds([])
     getEvent(id).then(setEvent)
@@ -59,13 +62,13 @@ export function EventDetailPage() {
     setCancelError(null)
     try {
       await cancelReservation(reservation.id, token)
-      setDeclinedMessage('Reserva cancelada. O estoque foi liberado, você pode reservar de novo.')
+      setDeclinedMessage(t('eventDetail.declinedCancel'))
       setReservation(null)
       setSelectedSeatIds([])
       getEvent(id).then(setEvent)
       if (event?.reservation_mode === 'seatmap') getEventSeats(id).then(setSeats)
     } catch (err) {
-      setCancelError(err.message)
+      setCancelError(translateApiError(err, t))
     } finally {
       setCancelling(false)
     }
@@ -80,7 +83,7 @@ export function EventDetailPage() {
       const created = await reserveGeneral(id, quantity, token)
       setReservation(created)
     } catch (err) {
-      setReserveError(err.message)
+      setReserveError(translateApiError(err, t))
     } finally {
       setSubmitting(false)
     }
@@ -101,7 +104,7 @@ export function EventDetailPage() {
       )
       setSelectedSeatIds((current) => current.filter((seatId) => seatsById.has(seatId)))
     } catch (err) {
-      setReserveError(err.message)
+      setReserveError(translateApiError(err, t))
     } finally {
       setSubmitting(false)
     }
@@ -109,7 +112,7 @@ export function EventDetailPage() {
 
   if (error)
     return <p className="event-detail-page__state event-detail-page__state--error">{error}</p>
-  if (!event) return <p className="event-detail-page__state">Carregando evento...</p>
+  if (!event) return <p className="event-detail-page__state">{t('eventDetail.loading')}</p>
 
   const remaining = event.capacity - event.reserved_count
   const selectedSeatLabels =
@@ -120,18 +123,19 @@ export function EventDetailPage() {
           .map((seat) => `${seat.row}${seat.col}`)
           .join(', ')
       : ''
+  const seatLabelsPlural = selectedSeatLabels.includes(',')
 
   return (
     <main className="event-detail-page">
       <span className={`event-detail-page__tag event-detail-page__tag--${event.category}`}>
-        {CATEGORY_LABEL[event.category]}
+        {t(`common.category.${event.category}`)}
       </span>
       <h1 className="event-detail-page__title">{event.title}</h1>
       <p className="event-detail-page__venue">
-        {event.venue} · {formatEventDate(event.date)}
+        {event.venue} · {formatEventDate(event.date, locale)}
       </p>
       {event.description && <p className="event-detail-page__description">{event.description}</p>}
-      <p className="event-detail-page__price">{formatPrice(event.price)}</p>
+      <p className="event-detail-page__price">{formatPrice(event.price, locale)}</p>
 
       {event.reservation_mode === 'general' && (
         <section className="event-detail-page__reserve">
@@ -141,15 +145,13 @@ export function EventDetailPage() {
           {reservation ? (
             reservation.status === 'paid' ? (
               <p className="event-detail-page__confirmation">
-                Pagamento aprovado! {reservation.quantity}{' '}
-                {reservation.quantity === 1 ? 'ingresso confirmado' : 'ingressos confirmados'}. Veja
-                em <Link to="/meus-ingressos">Meus ingressos</Link>.
+                {t('eventDetail.paidGeneral', { count: reservation.quantity })}
+                <Link to="/meus-ingressos">{t('eventDetail.myTicketsLinkText')}</Link>.
               </p>
             ) : (
               <>
                 <p className="event-detail-page__confirmation">
-                  Reserva feita: {reservation.quantity}{' '}
-                  {reservation.quantity === 1 ? 'ingresso' : 'ingressos'}, aguardando pagamento.
+                  {t('eventDetail.pendingGeneral', { count: reservation.quantity })}
                 </p>
                 <PaymentForm
                   reservation={reservation}
@@ -164,27 +166,28 @@ export function EventDetailPage() {
                   onClick={handleCancelReservation}
                   disabled={cancelling}
                 >
-                  {cancelling ? 'Cancelando...' : 'Desistir e cancelar reserva'}
+                  {cancelling ? t('eventDetail.cancelling') : t('eventDetail.giveUpAndCancel')}
                 </button>
               </>
             )
           ) : remaining <= 0 ? (
-            <p className="event-detail-page__state">Ingressos esgotados para este evento.</p>
+            <p className="event-detail-page__state">{t('eventDetail.soldOut')}</p>
           ) : !user ? (
             <p className="event-detail-page__state">
-              <Link to="/entrar">Entre</Link> para reservar seu ingresso.
+              <Link to="/entrar">{t('common.signInLinkText')}</Link>{' '}
+              {t('eventDetail.toReserveTicket')}
             </p>
           ) : (
             <form className="event-detail-page__form" onSubmit={handleReserveGeneral}>
               <div className="event-detail-page__quantity">
-                <span>Quantidade</span>
+                <span>{t('eventDetail.quantity')}</span>
                 <div className="quantity-stepper">
                   <button
                     type="button"
                     className="quantity-stepper__button"
                     onClick={() => setQuantity((current) => Math.max(1, current - 1))}
                     disabled={quantity <= 1}
-                    aria-label="Diminuir quantidade"
+                    aria-label={t('eventDetail.decreaseAria')}
                   >
                     −
                   </button>
@@ -196,16 +199,18 @@ export function EventDetailPage() {
                     className="quantity-stepper__button"
                     onClick={() => setQuantity((current) => Math.min(remaining, current + 1))}
                     disabled={quantity >= remaining}
-                    aria-label="Aumentar quantidade"
+                    aria-label={t('eventDetail.increaseAria')}
                   >
                     +
                   </button>
                 </div>
               </div>
-              <span className="event-detail-page__remaining">{remaining} disponíveis</span>
+              <span className="event-detail-page__remaining">
+                {t('eventDetail.available', { count: remaining })}
+              </span>
               {reserveError && <p className="event-detail-page__error">{reserveError}</p>}
               <button type="submit" disabled={submitting}>
-                {submitting ? 'Reservando...' : 'Reservar'}
+                {submitting ? t('eventDetail.reserving') : t('eventDetail.reserve')}
               </button>
             </form>
           )}
@@ -220,16 +225,19 @@ export function EventDetailPage() {
           {reservation ? (
             reservation.status === 'paid' ? (
               <p className="event-detail-page__confirmation">
-                Pagamento aprovado! Assento{selectedSeatLabels.includes(',') ? 's' : ''}{' '}
-                {selectedSeatLabels || 'selecionado'} confirmado
-                {selectedSeatLabels.includes(',') ? 's' : ''}. Veja em{' '}
-                <Link to="/meus-ingressos">Meus ingressos</Link>.
+                {t('eventDetail.paidSeats', {
+                  plural: seatLabelsPlural,
+                  labels: selectedSeatLabels || t('eventDetail.seatSelected'),
+                })}
+                <Link to="/meus-ingressos">{t('eventDetail.myTicketsLinkText')}</Link>.
               </p>
             ) : (
               <>
                 <p className="event-detail-page__confirmation">
-                  Reserva feita: assento{selectedSeatLabels.includes(',') ? 's' : ''}{' '}
-                  {selectedSeatLabels || 'selecionado'}, aguardando pagamento.
+                  {t('eventDetail.pendingSeats', {
+                    plural: seatLabelsPlural,
+                    labels: selectedSeatLabels || t('eventDetail.seatSelected'),
+                  })}
                 </p>
                 <PaymentForm
                   reservation={reservation}
@@ -244,29 +252,31 @@ export function EventDetailPage() {
                   onClick={handleCancelReservation}
                   disabled={cancelling}
                 >
-                  {cancelling ? 'Cancelando...' : 'Desistir e cancelar reserva'}
+                  {cancelling ? t('eventDetail.cancelling') : t('eventDetail.giveUpAndCancel')}
                 </button>
               </>
             )
           ) : !seats ? (
-            <p className="event-detail-page__state">Carregando mapa de assentos...</p>
+            <p className="event-detail-page__state">{t('eventDetail.loadingSeats')}</p>
           ) : seats.every((seat) => seat.status !== 'available') ? (
-            <p className="event-detail-page__state">
-              Todos os assentos estão ocupados para este evento.
-            </p>
+            <p className="event-detail-page__state">{t('eventDetail.allSeatsTaken')}</p>
           ) : (
             <>
               <SeatMap seats={seats} selected={selectedSeatIds} onToggle={toggleSeat} />
               {!user ? (
                 <p className="event-detail-page__state">
-                  <Link to="/entrar">Entre</Link> para reservar seus assentos.
+                  <Link to="/entrar">{t('common.signInLinkText')}</Link>{' '}
+                  {t('eventDetail.toReserveSeats')}
                 </p>
               ) : (
                 <div className="event-detail-page__seat-summary">
                   <span>
                     {selectedSeatIds.length > 0
-                      ? `${selectedSeatIds.length} assento${selectedSeatIds.length > 1 ? 's' : ''} · ${formatPrice(event.price * selectedSeatIds.length)}`
-                      : 'Selecione um ou mais assentos'}
+                      ? t('eventDetail.seatsSelectedSummary', {
+                          count: selectedSeatIds.length,
+                          price: formatPrice(event.price * selectedSeatIds.length, locale),
+                        })
+                      : t('eventDetail.selectSeats')}
                   </span>
                   {reserveError && <p className="event-detail-page__error">{reserveError}</p>}
                   <button
@@ -274,7 +284,7 @@ export function EventDetailPage() {
                     disabled={selectedSeatIds.length === 0 || submitting}
                     onClick={handleReserveSeats}
                   >
-                    {submitting ? 'Reservando...' : 'Reservar'}
+                    {submitting ? t('eventDetail.reserving') : t('eventDetail.reserve')}
                   </button>
                 </div>
               )}

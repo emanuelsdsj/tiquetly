@@ -1,3 +1,4 @@
+import { useLocale } from '../context/LocaleContext'
 import './SeatMap.css'
 
 function groupByRow(seats) {
@@ -10,6 +11,7 @@ function groupByRow(seats) {
 }
 
 export function SeatMap({ seats, selected, onToggle }) {
+  const { t } = useLocale()
   const rows = groupByRow(seats)
 
   function renderSeat(seat) {
@@ -29,7 +31,7 @@ export function SeatMap({ seats, selected, onToggle }) {
         disabled={isReserved}
         onClick={() => onToggle(seat.id)}
         aria-pressed={isSelected}
-        aria-label={`Assento ${seat.row}${seat.col}`}
+        aria-label={t('seatMap.seatAria', { row: seat.row, col: seat.col })}
       >
         {seat.col}
       </button>
@@ -41,7 +43,7 @@ export function SeatMap({ seats, selected, onToggle }) {
       <div className="seat-map__screen-wrap" aria-hidden="true">
         <div className="seat-map__screen" />
       </div>
-      <p className="seat-map__screen-label">Tela</p>
+      <p className="seat-map__screen-label">{t('seatMap.screen')}</p>
 
       <div className="seat-map__grid">
         {rows.map(([row, rowSeats]) => {
@@ -61,13 +63,13 @@ export function SeatMap({ seats, selected, onToggle }) {
 
       <div className="seat-map__legend">
         <span>
-          <i className="seat-map__swatch seat-map__swatch--available" /> Disponível
+          <i className="seat-map__swatch seat-map__swatch--available" /> {t('seatMap.available')}
         </span>
         <span>
-          <i className="seat-map__swatch seat-map__swatch--selected" /> Selecionado
+          <i className="seat-map__swatch seat-map__swatch--selected" /> {t('seatMap.selected')}
         </span>
         <span>
-          <i className="seat-map__swatch seat-map__swatch--reserved" /> Ocupado
+          <i className="seat-map__swatch seat-map__swatch--reserved" /> {t('seatMap.reserved')}
         </span>
       </div>
     </div>

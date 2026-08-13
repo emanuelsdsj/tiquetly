@@ -82,7 +82,7 @@ def unpublish_event(
 def get_event(event_id: int, session: Session = Depends(get_session)) -> Event:
     event = session.get(Event, event_id)
     if event is None or event.status != EventStatus.published:
-        raise EventNotFoundError(f"event {event_id} not found")
+        raise EventNotFoundError("EVENT_NOT_FOUND", f"event {event_id} not found", event_id=str(event_id))
     return event
 
 
