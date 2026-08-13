@@ -43,16 +43,6 @@ def test_search_with_a_keyword_hits_the_search_endpoint():
     assert event.date is not None
 
 
-def test_search_with_no_keyword_hits_now_playing():
-    def handler(request: httpx.Request) -> httpx.Response:
-        assert request.url.path == "/3/movie/now_playing"
-        return httpx.Response(200, json={"results": [RAW_MOVIE]})
-
-    events = _provider(handler).search()
-
-    assert len(events) == 1
-
-
 def test_search_forwards_the_year_filter_alongside_a_keyword():
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.params["primary_release_year"] == "2099"
@@ -61,13 +51,25 @@ def test_search_forwards_the_year_filter_alongside_a_keyword():
     _provider(handler).search(keyword="test", year=2099)
 
 
-def test_search_ignores_the_year_filter_without_a_keyword():
+def test_search_with_a_year_and_no_keyword_hits_discover():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/3/discover/movie"
+        assert request.url.params["primary_release_year"] == "2099"
+        assert request.url.params["sort_by"] == "popularity.desc"
+        return httpx.Response(200, json={"results": [RAW_MOVIE]})
+
+    events = _provider(handler).search(year=2099)
+
+    assert len(events) == 1
+
+
+def test_search_with_no_keyword_and_no_year_hits_now_playing():
     def handler(request: httpx.Request) -> httpx.Response:
         assert request.url.path == "/3/movie/now_playing"
         assert "primary_release_year" not in request.url.params
         return httpx.Response(200, json={"results": [RAW_MOVIE]})
 
-    _provider(handler).search(year=2099)
+    _provider(handler).search()
 
 
 def test_search_ignores_the_city_filter():

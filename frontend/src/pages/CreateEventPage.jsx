@@ -35,6 +35,7 @@ export function CreateEventPage() {
   const [results, setResults] = useState(null)
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState(null)
+  const [cityOptions, setCityOptions] = useState([])
 
   const [selected, setSelected] = useState(null)
   const [form, setForm] = useState(null)
@@ -50,6 +51,7 @@ export function CreateEventPage() {
     setCity('')
     setYear('')
     setSearchError(null)
+    setCityOptions([])
   }
 
   useEffect(() => {
@@ -71,6 +73,23 @@ export function CreateEventPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, keyword, city, year])
 
+  // City suggestions come from their own, separate request that never
+  // includes the city filter itself: the main search above already narrows
+  // `results` to whatever the organizer typed, so deriving suggestions from
+  // it would shrink the list toward zero as they type instead of helping
+  // them find the spelling. This keeps the suggestion set stable, driven
+  // only by category and keyword.
+  useEffect(() => {
+    if (category !== 'show') return undefined
+    const timeout = setTimeout(() => {
+      searchCatalog(category, keyword || undefined, token, {})
+        .then((events) => setCityOptions([...new Set(events.map((r) => r.city).filter(Boolean))]))
+        .catch(() => {})
+    }, 300)
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, keyword])
+
   function selectCatalogEvent(catalogEvent) {
     setSelected(catalogEvent)
     setForm(emptyDetailsForm(catalogEvent))
@@ -83,12 +102,6 @@ export function CreateEventPage() {
   }
 
   const reservationMode = CATEGORIES.find((c) => c.value === category).reservationMode
-
-  // Ticketmaster has no "list every city" endpoint on the plan this
-  // project uses; the cities on offer are instead whatever real ones show
-  // up in the current (possibly city-unfiltered) result set, so picking
-  // one never requires guessing the exact spelling.
-  const cityOptions = results ? [...new Set(results.map((r) => r.city).filter(Boolean))] : []
 
   async function handleSubmit(formEvent) {
     formEvent.preventDefault()
@@ -199,7 +212,7 @@ export function CreateEventPage() {
                 </datalist>
               </>
             )}
-            {category === 'movie' && keyword.trim() !== '' && (
+            {category === 'movie' && (
               <input
                 type="number"
                 inputMode="numeric"

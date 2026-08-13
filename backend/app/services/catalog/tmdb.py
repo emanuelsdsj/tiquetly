@@ -9,6 +9,7 @@ from app.models import EventCategory, EventSource
 from app.services.catalog.base import CatalogEvent
 
 TMDB_SEARCH_URL = "https://api.themoviedb.org/3/search/movie"
+TMDB_DISCOVER_URL = "https://api.themoviedb.org/3/discover/movie"
 TMDB_NOW_PLAYING_URL = "https://api.themoviedb.org/3/movie/now_playing"
 TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 
@@ -16,9 +17,12 @@ TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w500"
 class TmdbProvider:
     """Adapts the TMDb API to the common CatalogProvider interface.
 
-    With no keyword, lists movies currently in theaters (now_playing);
-    with one, searches the full catalog instead, since now_playing has no
-    query parameter of its own.
+    Three different TMDb endpoints back a single `search`, picked by what
+    was actually asked for: a keyword searches the full catalog by title
+    (`/search/movie`); a year with no keyword filters by release year
+    without a text query (`/discover/movie`, the only one of the three
+    that supports that); neither one lists what's currently in theaters
+    (`/movie/now_playing`), the default with the least to configure.
     """
 
     def __init__(self, client: httpx.Client | None = None):
@@ -37,10 +41,13 @@ class TmdbProvider:
             url, params = TMDB_SEARCH_URL, {"api_key": settings.tmdb_api_key, "query": keyword}
             if year:
                 params["primary_release_year"] = year
+        elif year:
+            url, params = TMDB_DISCOVER_URL, {
+                "api_key": settings.tmdb_api_key,
+                "primary_release_year": year,
+                "sort_by": "popularity.desc",
+            }
         else:
-            # now_playing has no year/date-range parameter of its own
-            # (it's always "what's in theaters right now"), so `year` only
-            # has an effect once there is a keyword to search by.
             url, params = TMDB_NOW_PLAYING_URL, {"api_key": settings.tmdb_api_key}
 
         try:
