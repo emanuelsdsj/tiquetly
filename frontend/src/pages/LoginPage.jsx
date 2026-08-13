@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
+import { PasswordField } from '../components/PasswordField'
 import './AuthForm.css'
 
 export function LoginPage() {
@@ -40,15 +41,12 @@ export function LoginPage() {
             required
           />
         </label>
-        <label>
-          Senha
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            required
-          />
-        </label>
+        <PasswordField
+          label="Senha"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          autoComplete="current-password"
+        />
         {error && <p className="auth-page__error">{error}</p>}
         <button type="submit" disabled={submitting}>
           {submitting ? 'Entrando...' : 'Entrar'}

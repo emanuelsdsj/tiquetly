@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { login, register } from '../api/auth'
 import { useAuth } from '../context/AuthContext'
+import { PasswordField } from '../components/PasswordField'
 import './AuthForm.css'
 
 export function RegisterPage() {
@@ -51,16 +52,13 @@ export function RegisterPage() {
             required
           />
         </label>
-        <label>
-          Senha
-          <input
-            type="password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            minLength={6}
-            required
-          />
-        </label>
+        <PasswordField
+          label="Senha"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          minLength={6}
+          autoComplete="new-password"
+        />
         {error && <p className="auth-page__error">{error}</p>}
         <button type="submit" disabled={submitting}>
           {submitting ? 'Criando conta...' : 'Criar conta'}
