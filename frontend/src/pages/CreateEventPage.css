@@ -94,6 +94,23 @@
   flex: 0 0 140px;
 }
 
+/* Native affordances (datalist arrow on the city field, number spinner
+   on the year field) read as leftover browser chrome against the rest
+   of the app's own controls, so both are hidden here. */
+.create-event-page__search-filter::-webkit-calendar-picker-indicator {
+  display: none;
+}
+
+.create-event-page__search-filter::-webkit-outer-spin-button,
+.create-event-page__search-filter::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.create-event-page__search-filter[type='number'] {
+  -moz-appearance: textfield;
+}
+
 .create-event-page__results {
   list-style: none;
   margin: 16px 0 0;
