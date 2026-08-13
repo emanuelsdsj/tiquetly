@@ -4,6 +4,7 @@ import { getEvent, getEventSeats, reserveGeneral, reserveSeats } from '../api/ev
 import { cancelReservation } from '../api/reservations'
 import { PaymentForm } from '../components/PaymentForm'
 import { SeatMap } from '../components/SeatMap'
+import { Spinner } from '../components/Spinner'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
@@ -112,7 +113,13 @@ export function EventDetailPage() {
 
   if (error)
     return <p className="event-detail-page__state event-detail-page__state--error">{error}</p>
-  if (!event) return <p className="event-detail-page__state">{t('eventDetail.loading')}</p>
+  if (!event)
+    return (
+      <p className="event-detail-page__state">
+        <Spinner />
+        {t('eventDetail.loading')}
+      </p>
+    )
 
   const remaining = event.capacity - event.reserved_count
   const selectedSeatLabels =
@@ -257,7 +264,10 @@ export function EventDetailPage() {
               </>
             )
           ) : !seats ? (
-            <p className="event-detail-page__state">{t('eventDetail.loadingSeats')}</p>
+            <p className="event-detail-page__state">
+              <Spinner />
+              {t('eventDetail.loadingSeats')}
+            </p>
           ) : seats.every((seat) => seat.status !== 'available') ? (
             <p className="event-detail-page__state">{t('eventDetail.allSeatsTaken')}</p>
           ) : (

@@ -1,0 +1,23 @@
+.spinner {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  margin-right: 0.6em;
+  vertical-align: -0.2em;
+  border: 2px solid var(--ink-muted);
+  border-top-color: var(--marquee-gold);
+  border-radius: 50%;
+  animation: spinner-spin 0.7s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+@keyframes spinner-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

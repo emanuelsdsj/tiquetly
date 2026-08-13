@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { getMyEvents, unpublishEvent, updateEvent } from '../api/events'
+import { Spinner } from '../components/Spinner'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
@@ -130,7 +131,10 @@ export function OrganizerPage() {
       )}
 
       {!error && events === null && (
-        <p className="organizer-page__state">{t('organizer.loading')}</p>
+        <p className="organizer-page__state">
+          <Spinner />
+          {t('organizer.loading')}
+        </p>
       )}
 
       {events !== null && events.length === 0 && (

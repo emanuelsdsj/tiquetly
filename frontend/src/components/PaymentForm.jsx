@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
 import { formatPrice } from '../lib/format'
+import { maskCardNumber, maskDigits, maskExpiry } from '../lib/inputMasks'
 import './PaymentForm.css'
 
 const APPROVE_CARD = '4242 4242 4242 4242'
@@ -52,7 +53,8 @@ export function PaymentForm({ reservation, amount, onPaid, onDeclined }) {
           inputMode="numeric"
           placeholder="0000 0000 0000 0000"
           value={cardNumber}
-          onChange={(event) => setCardNumber(event.target.value)}
+          onChange={(event) => setCardNumber(maskCardNumber(event.target.value))}
+          maxLength={19}
           required
         />
       </label>
@@ -70,9 +72,11 @@ export function PaymentForm({ reservation, amount, onPaid, onDeclined }) {
           <span>{t('paymentForm.expiry')}</span>
           <input
             type="text"
+            inputMode="numeric"
             placeholder="MM/AA"
             value={expiry}
-            onChange={(event) => setExpiry(event.target.value)}
+            onChange={(event) => setExpiry(maskExpiry(event.target.value))}
+            maxLength={5}
             required
           />
         </label>
@@ -83,7 +87,8 @@ export function PaymentForm({ reservation, amount, onPaid, onDeclined }) {
             inputMode="numeric"
             placeholder="123"
             value={cvv}
-            onChange={(event) => setCvv(event.target.value)}
+            onChange={(event) => setCvv(maskDigits(event.target.value, 3))}
+            maxLength={3}
             required
           />
         </label>

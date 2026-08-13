@@ -26,6 +26,7 @@
 .gate-page__state {
   color: var(--ink-muted);
   padding: 40px 0;
+  text-align: center;
 }
 
 .gate-page__field {

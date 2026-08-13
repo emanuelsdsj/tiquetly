@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { cancelReservation } from '../api/reservations'
 import { getMyTickets } from '../api/tickets'
+import { Spinner } from '../components/Spinner'
 import { TicketCard } from '../components/TicketCard'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
@@ -61,7 +62,10 @@ export function MyTicketsPage() {
       ) : error ? (
         <p className="my-tickets-page__state my-tickets-page__state--error">{error}</p>
       ) : tickets === null ? (
-        <p className="my-tickets-page__state">{t('myTickets.loading')}</p>
+        <p className="my-tickets-page__state">
+          <Spinner />
+          {t('myTickets.loading')}
+        </p>
       ) : tickets.length === 0 ? (
         <p className="my-tickets-page__state">
           {t('myTickets.emptyPrefix')} <Link to="/">{t('myTickets.findEventLinkText')}</Link>{' '}

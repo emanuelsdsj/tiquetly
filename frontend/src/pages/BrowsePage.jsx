@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { searchEvents } from '../api/events'
 import { EventCard } from '../components/EventCard'
+import { Spinner } from '../components/Spinner'
 import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
 import './BrowsePage.css'
@@ -77,7 +78,12 @@ export function BrowsePage() {
 
       {error && <p className="browse-page__state browse-page__state--error">{error}</p>}
 
-      {!error && events === null && <p className="browse-page__state">{t('browse.loading')}</p>}
+      {!error && events === null && (
+        <p className="browse-page__state">
+          <Spinner />
+          {t('browse.loading')}
+        </p>
+      )}
 
       {!error && events !== null && events.length === 0 && (
         <p className="browse-page__state">{t('browse.empty')}</p>

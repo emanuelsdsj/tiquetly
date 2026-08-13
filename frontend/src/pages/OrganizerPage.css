@@ -2,7 +2,7 @@
    tables and forms, not tickets. */
 
 .organizer-page {
-  max-width: 720px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
@@ -44,6 +44,7 @@
 .organizer-page__state {
   color: var(--ink-muted);
   padding: 40px 0;
+  text-align: center;
 }
 
 .organizer-page__state--error {

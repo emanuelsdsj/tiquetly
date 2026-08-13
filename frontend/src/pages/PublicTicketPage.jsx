@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getPublicTicket } from '../api/tickets'
+import { Spinner } from '../components/Spinner'
 import { TicketCard } from '../components/TicketCard'
 import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
@@ -26,7 +27,10 @@ export function PublicTicketPage() {
       {error ? (
         <p className="public-ticket-page__state public-ticket-page__state--error">{error}</p>
       ) : !ticket ? (
-        <p className="public-ticket-page__state">{t('publicTicket.loading')}</p>
+        <p className="public-ticket-page__state">
+          <Spinner />
+          {t('publicTicket.loading')}
+        </p>
       ) : (
         <TicketCard ticket={ticket} />
       )}

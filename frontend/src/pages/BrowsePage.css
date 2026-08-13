@@ -1,5 +1,5 @@
 .browse-page {
-  max-width: 1080px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
@@ -95,6 +95,7 @@
 .browse-page__state {
   color: var(--ink-muted);
   padding: 40px 0;
+  text-align: center;
 }
 
 .browse-page__state--error {

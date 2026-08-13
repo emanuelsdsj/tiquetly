@@ -200,6 +200,7 @@
 .event-detail-page__state {
   color: var(--ink-muted);
   padding: 40px 0;
+  text-align: center;
 }
 
 .event-detail-page__state--error {
