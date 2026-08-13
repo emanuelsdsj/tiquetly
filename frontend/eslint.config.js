@@ -36,5 +36,14 @@ export default [
       'react/prop-types': 'off',
     },
   },
+  {
+    // Node-context files: config files, Vitest unit tests (process.env.TZ),
+    // and Playwright specs (process.env.CI, process.env.E2E_BASE_URL),
+    // none of which run in the browser like the rest of src/.
+    files: ['*.config.js', 'e2e/**/*.js', '**/*.test.js'],
+    languageOptions: {
+      globals: globals.node,
+    },
+  },
   eslintConfigPrettier,
 ]

@@ -10,4 +10,11 @@ export default defineConfig({
     // server listening only on loopback (seen in practice, see RODAR_LOCAL.md).
     host: true,
   },
+  test: {
+    // Pure-logic unit tests only (lib/format.js, lib/apiErrors.js); the
+    // e2e/ directory holds Playwright specs, a different test runner
+    // with its own `test`/`expect`, excluded here so Vitest doesn't try
+    // to collect and run them too.
+    exclude: ['e2e/**', 'node_modules/**'],
+  },
 })
