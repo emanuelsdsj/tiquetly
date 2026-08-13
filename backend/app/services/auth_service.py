@@ -3,7 +3,7 @@ from sqlmodel import Session, select
 from app.core.errors import EmailAlreadyRegisteredError, InvalidCredentialsError
 from app.core.security import hash_password, verify_password
 from app.models import User, UserRole
-from app.schemas import UserCreate
+from app.schemas import StaffAccountCreate, UserCreate
 
 
 def register_customer(session: Session, data: UserCreate) -> User:
@@ -23,6 +23,30 @@ def register_customer(session: Session, data: UserCreate) -> User:
     session.commit()
     session.refresh(user)
     return user
+
+
+def create_staff_account(session: Session, data: StaffAccountCreate) -> User:
+    existing = session.exec(select(User).where(User.email == data.email)).first()
+    if existing:
+        raise EmailAlreadyRegisteredError(
+            "EMAIL_ALREADY_REGISTERED", f"email {data.email} is already registered", email=data.email
+        )
+
+    user = User(
+        email=data.email,
+        hashed_password=hash_password(data.password),
+        name=data.name,
+        role=data.role,
+    )
+    session.add(user)
+    session.commit()
+    session.refresh(user)
+    return user
+
+
+def list_staff_accounts(session: Session) -> list[User]:
+    statement = select(User).where(User.role.in_([UserRole.organizer, UserRole.gatekeeper]))
+    return list(session.exec(statement).all())
 
 
 def authenticate_user(session: Session, email: str, password: str) -> User:

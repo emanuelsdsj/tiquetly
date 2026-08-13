@@ -13,6 +13,7 @@ class UserRole(str, Enum):
     organizer = "organizer"
     customer = "customer"
     gatekeeper = "gatekeeper"
+    admin = "admin"
 
 
 class EventSource(str, Enum):

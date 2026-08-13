@@ -35,6 +35,7 @@ def require_role(*roles: UserRole):
 require_organizer = require_role(UserRole.organizer)
 require_customer = require_role(UserRole.customer)
 require_gatekeeper = require_role(UserRole.gatekeeper)
+require_admin = require_role(UserRole.admin)
 
 
 def get_ticketmaster_provider() -> TicketmasterProvider:

@@ -167,6 +167,7 @@ Credentials (same password for everyone, just to make testing easier):
 
 | Role | Email | Password |
 | --- | --- | --- |
+| Admin | `admin@tiquetly.com` | `tiquetly123` |
 | Organizer | `organizador@tiquetly.com` | `tiquetly123` |
 | Customer 1 | `cliente1@tiquetly.com` | `tiquetly123` |
 | Customer 2 | `cliente2@tiquetly.com` | `tiquetly123` |
@@ -196,22 +197,29 @@ After the seed, at http://localhost:5173:
    in. One ticket from the seeded movie event already shows as
    "already used" so you can test that outcome without validating the
    same ticket twice by hand.
+4. **Admin** (`admin@tiquetly.com`, optional, see ADR 0023): sign in, go
+   to "Admin", create a new organizer or gatekeeper account and sign in
+   as it right away, no seed script or database access needed.
 
 ## Current state
 
 What already works end to end:
 
-- Authentication with three roles (organizer, customer, gatekeeper),
-  customer registration, login, JWT.
+- Authentication with the three roles the challenge asks for (organizer,
+  customer, gatekeeper), customer registration, login, JWT. A fourth,
+  optional role (admin) creates organizer and gatekeeper accounts from
+  its own screen instead of only through the seed script, see ADR 0023.
 - Integration with Ticketmaster Discovery and TMDb behind a shared
   catalog adapter.
 - The organizer creates events from the catalog through its own screen,
   edits published ones, and unpublishes them.
 - The customer browses, searches, and filters published events.
-- Reservation by quantity (shows) and by seat map (movies), both
-  guaranteed to never sell the same spot twice under concurrency, and
-  both with the option to cancel (before or after paying) and return
-  the spot to stock.
+- Reservation by quantity or by seat map: movies are always seat map,
+  shows default to quantity but switch to seat map automatically when
+  Ticketmaster reports assigned seating for the picked event (see ADR
+  0003's addendum). Both guaranteed to never sell the same spot twice
+  under concurrency, and both with the option to cancel (before or
+  after paying) and return the spot to stock.
 - Simulated payment (approval and decline) with a test card, releases
   the stock again on decline or cancellation.
 - Signed QR ticket (not forgeable) and the "My tickets" area.

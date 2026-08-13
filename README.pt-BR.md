@@ -166,6 +166,7 @@ Credenciais (senha igual pra todo mundo, só pra facilitar o teste):
 
 | Papel | E-mail | Senha |
 | --- | --- | --- |
+| Admin | `admin@tiquetly.com` | `tiquetly123` |
 | Organizador | `organizador@tiquetly.com` | `tiquetly123` |
 | Cliente 1 | `cliente1@tiquetly.com` | `tiquetly123` |
 | Cliente 2 | `cliente2@tiquetly.com` | `tiquetly123` |
@@ -192,22 +193,31 @@ Depois do seed, em http://localhost:5173:
    escolher o evento do dia, validar por câmera ou digitando o código.
    Um ingresso do evento de filme semeado já sai "já utilizado" para
    testar esse retorno sem precisar validar duas vezes na mão.
+4. **Admin** (`admin@tiquetly.com`, opcional, ver ADR 0023): entrar, ir
+   em "Admin", criar uma conta nova de organizador ou portaria e já
+   logar com ela na hora, sem precisar de script de seed nem acesso ao
+   banco.
 
 ## Estado atual
 
 O que já funciona de ponta a ponta:
 
-- Autenticação com três papéis (organizador, cliente, portaria), registro
-  de cliente, login, JWT.
+- Autenticação com os três papéis que o desafio pede (organizador,
+  cliente, portaria), registro de cliente, login, JWT. Um quarto papel
+  opcional (admin) cria contas de organizador e portaria pela própria
+  tela em vez de só pelo script de seed, ver ADR 0023.
 - Integração com Ticketmaster Discovery e TMDb atrás de um adapter comum
   de catálogo.
 - Organizador cria eventos a partir do catálogo pela própria tela,
   edita os já publicados e despublica.
 - Cliente navega, busca e filtra eventos publicados.
-- Reserva por quantidade (shows) e por mapa de assentos (filmes), as
-  duas com garantia de não vender o mesmo lugar duas vezes sob
-  concorrência, e as duas com opção de cancelar (antes ou depois de
-  pagar) e devolver o lugar ao estoque.
+- Reserva por quantidade ou por mapa de assentos: filme é sempre mapa
+  de assentos, show usa quantidade por padrão mas troca para mapa de
+  assentos automaticamente quando a Ticketmaster reporta assento
+  marcado pro evento escolhido (ver o adendo da ADR 0003). As duas com
+  garantia de não vender o mesmo lugar duas vezes sob concorrência, e
+  as duas com opção de cancelar (antes ou depois de pagar) e devolver o
+  lugar ao estoque.
 - Pagamento simulado (aprovação e recusa) com cartão de teste, libera o
   estoque de novo em caso de recusa ou cancelamento.
 - Ingresso com QR assinado (não forjável) e a área "Meus ingressos".

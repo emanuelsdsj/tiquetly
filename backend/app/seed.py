@@ -31,6 +31,7 @@ from app.services.reservation_service import APPROVE_CARD_NUMBER
 SEED_PASSWORD = "tiquetly123"
 
 SEED_USERS = [
+    ("admin@tiquetly.com", "Admin Tiquetly", UserRole.admin),
     ("organizador@tiquetly.com", "Organizador Tiquetly", UserRole.organizer),
     ("cliente1@tiquetly.com", "Cliente Um", UserRole.customer),
     ("cliente2@tiquetly.com", "Cliente Dois", UserRole.customer),
@@ -161,6 +162,7 @@ def main() -> None:
             reservation_service.pay_reservation(session, customer2, reservation.id, APPROVE_CARD_NUMBER)
 
         print("Seed done.")
+        print(f"  admin:      admin@tiquetly.com / {SEED_PASSWORD}")
         print(f"  organizer:  organizador@tiquetly.com / {SEED_PASSWORD}")
         print(f"  customer 1: cliente1@tiquetly.com / {SEED_PASSWORD}")
         print(f"  customer 2: cliente2@tiquetly.com / {SEED_PASSWORD}")

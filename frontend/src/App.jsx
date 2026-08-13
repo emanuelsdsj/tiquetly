@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Outlet, Route, Routes } from 'react-router-dom'
 import { Nav } from './components/Nav'
 import { useLocale } from './context/LocaleContext'
+import { AdminPage } from './pages/AdminPage'
 import { BrowsePage } from './pages/BrowsePage'
 import { CreateEventPage } from './pages/CreateEventPage'
 import { EventDetailPage } from './pages/EventDetailPage'
@@ -44,6 +45,7 @@ function App() {
             </Suspense>
           }
         />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="/entrar" element={<LoginPage />} />
         <Route path="/registrar" element={<RegisterPage />} />
       </Route>

@@ -32,6 +32,7 @@ E2E_PASSWORD = "tiquetly123"
 E2E_USERS = [
     ("e2e-organizer@tiquetly.com", "E2E Organizer", UserRole.organizer),
     ("e2e-gatekeeper@tiquetly.com", "E2E Gatekeeper", UserRole.gatekeeper),
+    ("e2e-admin@tiquetly.com", "E2E Admin", UserRole.admin),
 ]
 
 
@@ -102,6 +103,7 @@ def main() -> None:
     with Session(engine) as session:
         organizer = _get_or_create_user(session, *E2E_USERS[0])
         _get_or_create_user(session, *E2E_USERS[1])
+        _get_or_create_user(session, *E2E_USERS[2])
 
         general_event = _get_or_create_general_event(session, organizer)
         seatmap_event = _get_or_create_seatmap_event(session, organizer)
@@ -109,6 +111,7 @@ def main() -> None:
         print("E2E fixtures ready.")
         print(f"  organizer:  {E2E_USERS[0][0]} / {E2E_PASSWORD}")
         print(f"  gatekeeper: {E2E_USERS[1][0]} / {E2E_PASSWORD}")
+        print(f"  admin:      {E2E_USERS[2][0]} / {E2E_PASSWORD}")
         print(f"  general event: {general_event.title!r} (id {general_event.id})")
         print(f"  seatmap event: {seatmap_event.title!r} (id {seatmap_event.id})")
 

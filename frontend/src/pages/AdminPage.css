@@ -1,0 +1,177 @@
+/* Management screen, no canhoto shape here (ADR 0007 scope note):
+   a form and a list, not a ticket. */
+
+.admin-page {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+}
+
+.admin-page__head {
+  margin-bottom: 28px;
+}
+
+.admin-page__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5vw, 2.6rem);
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.admin-page__subtitle {
+  color: var(--ink-muted);
+  margin: 6px 0 0;
+}
+
+.admin-page__state {
+  color: var(--ink-muted);
+  padding: 40px 0;
+  text-align: center;
+}
+
+.admin-page__error {
+  color: var(--error);
+  font-size: 0.85rem;
+  margin: 0;
+}
+
+/* Form on the left, existing accounts on the right, same "use the width"
+   two-column treatment as the other management pages. Wraps to stacked
+   below the breakpoint. */
+.admin-page__layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  align-items: flex-start;
+}
+
+.admin-page__form {
+  flex: 1 1 320px;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--ink-raised);
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.admin-page__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.admin-page__form input {
+  background: var(--ink);
+  border: 1px solid var(--ink-muted);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: var(--ink-text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}
+
+.admin-page__form-title {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  letter-spacing: 0.01em;
+  margin: 0;
+}
+
+.admin-page__roles {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-page__role-chip {
+  background: none;
+  border: 1px solid var(--ink-muted);
+  border-radius: 999px;
+  padding: 8px 16px;
+  color: var(--ink-text);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.admin-page__role-chip--active {
+  background: var(--marquee-gold);
+  border-color: var(--marquee-gold);
+  color: #201a10;
+  font-weight: 600;
+}
+
+.admin-page__form button[type='submit'] {
+  background: var(--marquee-gold);
+  color: #201a10;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.admin-page__form button[type='submit']:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.admin-page__list-column {
+  flex: 1 1 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-page__staff-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-staff {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--ink-raised);
+  border-radius: 8px;
+  padding: 12px 16px;
+}
+
+.admin-staff__role {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 3px;
+  color: #201a10;
+}
+
+.admin-staff__role--organizer {
+  background: var(--marquee-gold);
+}
+
+.admin-staff__role--gatekeeper {
+  background: var(--screen-teal);
+  color: #0d1f1d;
+}
+
+.admin-staff__name {
+  font-weight: 600;
+}
+
+.admin-staff__email {
+  color: var(--ink-muted);
+  font-size: 0.85rem;
+}
