@@ -116,7 +116,7 @@ export function GatePage() {
     return (
       <main className="gate-page">
         <p className="gate-page__state">
-          <Link to="/entrar">{t('common.signInLinkText')}</Link> {t('gate.signInPrefix')}
+          <Link to="/login">{t('common.signInLinkText')}</Link> {t('gate.signInPrefix')}
         </p>
       </main>
     )

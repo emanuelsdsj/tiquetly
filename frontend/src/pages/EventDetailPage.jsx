@@ -171,7 +171,7 @@ export function EventDetailPage() {
                 reservation.status === 'paid' ? (
                   <p className="event-detail-page__confirmation">
                     {t('eventDetail.paidGeneral', { count: reservation.quantity })}
-                    <Link to="/meus-ingressos">{t('eventDetail.myTicketsLinkText')}</Link>.
+                    <Link to="/my-tickets">{t('eventDetail.myTicketsLinkText')}</Link>.
                   </p>
                 ) : (
                   <>
@@ -203,7 +203,7 @@ export function EventDetailPage() {
                 <p className="event-detail-page__state">{t('eventDetail.soldOut')}</p>
               ) : !user ? (
                 <p className="event-detail-page__state">
-                  <Link to="/entrar">{t('common.signInLinkText')}</Link>{' '}
+                  <Link to="/login">{t('common.signInLinkText')}</Link>{' '}
                   {t('eventDetail.toReserveTicket')}
                 </p>
               ) : (
@@ -258,7 +258,7 @@ export function EventDetailPage() {
                       plural: seatLabelsPlural,
                       labels: selectedSeatLabels || t('eventDetail.seatSelected'),
                     })}
-                    <Link to="/meus-ingressos">{t('eventDetail.myTicketsLinkText')}</Link>.
+                    <Link to="/my-tickets">{t('eventDetail.myTicketsLinkText')}</Link>.
                   </p>
                 ) : (
                   <>
@@ -306,7 +306,7 @@ export function EventDetailPage() {
                   />
                   {!user ? (
                     <p className="event-detail-page__state">
-                      <Link to="/entrar">{t('common.signInLinkText')}</Link>{' '}
+                      <Link to="/login">{t('common.signInLinkText')}</Link>{' '}
                       {t('eventDetail.toReserveSeats')}
                     </p>
                   ) : (

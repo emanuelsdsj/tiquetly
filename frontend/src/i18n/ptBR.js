@@ -14,6 +14,7 @@ export const ptBR = {
     createAccount: 'Criar conta',
   },
   browse: {
+    title: 'Buscar eventos',
     subtitle: 'Shows e filmes com ingresso disponível agora.',
     searchPlaceholder: 'Buscar por nome do evento',
     searchAriaLabel: 'Buscar evento',

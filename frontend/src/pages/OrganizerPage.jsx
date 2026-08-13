@@ -93,7 +93,7 @@ export function OrganizerPage() {
     return (
       <main className="organizer-page">
         <p className="organizer-page__state">
-          <Link to="/entrar">{t('common.signInLinkText')}</Link> {t('organizer.signInPrefix')}
+          <Link to="/login">{t('common.signInLinkText')}</Link> {t('organizer.signInPrefix')}
         </p>
       </main>
     )
@@ -114,7 +114,7 @@ export function OrganizerPage() {
           <h1 className="organizer-page__title">{t('organizer.title')}</h1>
           <p className="organizer-page__subtitle">{t('organizer.subtitle')}</p>
         </div>
-        <Link to="/organizador/criar" className="organizer-page__create">
+        <Link to="/organizer/create" className="organizer-page__create">
           {t('organizer.createEvent')}
         </Link>
       </header>

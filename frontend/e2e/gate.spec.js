@@ -31,7 +31,7 @@ test('validates a ticket, rejects re-validating it, and rejects an unknown code'
   await page.getByRole('button', { name: 'Sign out' }).click()
   await signIn(page, FIXTURE_GATEKEEPER)
 
-  await page.goto('/portaria')
+  await page.goto('/gate')
   await page
     .getByLabel('Event')
     .selectOption({ label: `${FIXTURE_SEATMAP_EVENT_TITLE} · ${FIXTURE_SEATMAP_EVENT_VENUE}` })

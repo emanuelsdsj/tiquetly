@@ -26,9 +26,9 @@ export function Nav() {
       <div className="nav__links">
         {user ? (
           <>
-            {user.role === 'customer' && <Link to="/meus-ingressos">{t('nav.myTickets')}</Link>}
-            {user.role === 'gatekeeper' && <Link to="/portaria">{t('nav.gate')}</Link>}
-            {user.role === 'organizer' && <Link to="/organizador">{t('nav.myEvents')}</Link>}
+            {user.role === 'customer' && <Link to="/my-tickets">{t('nav.myTickets')}</Link>}
+            {user.role === 'gatekeeper' && <Link to="/gate">{t('nav.gate')}</Link>}
+            {user.role === 'organizer' && <Link to="/organizer">{t('nav.myEvents')}</Link>}
             {user.role === 'admin' && <Link to="/admin">{t('nav.admin')}</Link>}
             <span className="nav__user">{user.name}</span>
             <button type="button" className="nav__link-button" onClick={handleSignOut}>
@@ -37,8 +37,8 @@ export function Nav() {
           </>
         ) : (
           <>
-            <Link to="/entrar">{t('nav.signIn')}</Link>
-            <Link to="/registrar">{t('nav.createAccount')}</Link>
+            <Link to="/login">{t('nav.signIn')}</Link>
+            <Link to="/register">{t('nav.createAccount')}</Link>
           </>
         )}
         <div className="nav__locale" role="group" aria-label="Language">

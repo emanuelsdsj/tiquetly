@@ -34,7 +34,7 @@ export function BrowsePage() {
   return (
     <main className="browse-page">
       <header className="browse-page__head">
-        <h1 className="browse-page__title">Tiquetly</h1>
+        <h1 className="browse-page__title">{t('browse.title')}</h1>
         <p className="browse-page__subtitle">{t('browse.subtitle')}</p>
       </header>
 

@@ -14,6 +14,7 @@ export const en = {
     createAccount: 'Create account',
   },
   browse: {
+    title: 'Browse events',
     subtitle: 'Shows and movies with tickets available now.',
     searchPlaceholder: 'Search by event name',
     searchAriaLabel: 'Search event',

@@ -57,7 +57,7 @@ export function MyTicketsPage() {
 
       {!user ? (
         <p className="my-tickets-page__state">
-          <Link to="/entrar">{t('common.signInLinkText')}</Link> {t('myTickets.toViewTickets')}
+          <Link to="/login">{t('common.signInLinkText')}</Link> {t('myTickets.toViewTickets')}
         </p>
       ) : error ? (
         <p className="my-tickets-page__state my-tickets-page__state--error">{error}</p>

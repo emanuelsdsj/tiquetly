@@ -9,7 +9,7 @@ export function TicketCard({ ticket, onCancel, cancelling }) {
   const [copied, setCopied] = useState(false)
 
   function handleShare() {
-    const url = `${window.location.origin}/ingressos/${ticket.public_code}`
+    const url = `${window.location.origin}/tickets/${ticket.public_code}`
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)

@@ -32,13 +32,13 @@ function App() {
     <Routes>
       <Route element={<Layout />}>
         <Route path="/" element={<BrowsePage />} />
-        <Route path="/eventos/:id" element={<EventDetailPage />} />
-        <Route path="/meus-ingressos" element={<MyTicketsPage />} />
-        <Route path="/ingressos/:code" element={<PublicTicketPage />} />
-        <Route path="/organizador" element={<OrganizerPage />} />
-        <Route path="/organizador/criar" element={<CreateEventPage />} />
+        <Route path="/events/:id" element={<EventDetailPage />} />
+        <Route path="/my-tickets" element={<MyTicketsPage />} />
+        <Route path="/tickets/:code" element={<PublicTicketPage />} />
+        <Route path="/organizer" element={<OrganizerPage />} />
+        <Route path="/organizer/create" element={<CreateEventPage />} />
         <Route
-          path="/portaria"
+          path="/gate"
           element={
             <Suspense fallback={<p className="gate-page__state">{t('common.loading')}</p>}>
               <GatePage />
@@ -46,8 +46,8 @@ function App() {
           }
         />
         <Route path="/admin" element={<AdminPage />} />
-        <Route path="/entrar" element={<LoginPage />} />
-        <Route path="/registrar" element={<RegisterPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
       </Route>
     </Routes>
   )

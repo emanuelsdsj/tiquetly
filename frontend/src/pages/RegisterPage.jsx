@@ -68,7 +68,7 @@ export function RegisterPage() {
         </button>
       </form>
       <p className="auth-page__switch">
-        {t('auth.register.hasAccount')} <Link to="/entrar">{t('auth.register.signIn')}</Link>
+        {t('auth.register.hasAccount')} <Link to="/login">{t('auth.register.signIn')}</Link>
       </p>
     </main>
   )

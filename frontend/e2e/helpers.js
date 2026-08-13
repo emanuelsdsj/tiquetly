@@ -16,7 +16,7 @@ export async function registerAndSignIn(
   page,
   { name = 'E2E Customer', email, password = 'tiquetly123' },
 ) {
-  await page.goto('/registrar')
+  await page.goto('/register')
   await page.getByLabel('Name').fill(name)
   await page.getByLabel('Email').fill(email)
   await page.locator('.password-field input').fill(password)
@@ -25,7 +25,7 @@ export async function registerAndSignIn(
 }
 
 export async function signIn(page, { email, password }) {
-  await page.goto('/entrar')
+  await page.goto('/login')
   await page.getByLabel('Email').fill(email)
   await page.locator('.password-field input').fill(password)
   await page.getByRole('button', { name: 'Sign in', exact: true }).click()

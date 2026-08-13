@@ -110,7 +110,7 @@ export function CreateEventPage() {
         },
         token,
       )
-      navigate('/organizador', { state: { createdEventId: created.id } })
+      navigate('/organizer', { state: { createdEventId: created.id } })
     } catch (err) {
       setSubmitError(translateApiError(err, t))
     } finally {
@@ -122,7 +122,7 @@ export function CreateEventPage() {
     return (
       <main className="create-event-page">
         <p className="create-event-page__state">
-          <Link to="/entrar">{t('common.signInLinkText')}</Link> {t('createEvent.signInPrefix')}
+          <Link to="/login">{t('common.signInLinkText')}</Link> {t('createEvent.signInPrefix')}
         </p>
       </main>
     )
@@ -143,7 +143,7 @@ export function CreateEventPage() {
           <h1 className="create-event-page__title">{t('createEvent.title')}</h1>
           <p className="create-event-page__subtitle">{t('createEvent.subtitle')}</p>
         </div>
-        <Link to="/organizador" className="create-event-page__back">
+        <Link to="/organizer" className="create-event-page__back">
           {t('createEvent.back')}
         </Link>
       </header>

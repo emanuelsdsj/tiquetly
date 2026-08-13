@@ -56,7 +56,7 @@ export function LoginPage() {
         </button>
       </form>
       <p className="auth-page__switch">
-        {t('auth.login.noAccount')} <Link to="/registrar">{t('auth.login.createAccount')}</Link>
+        {t('auth.login.noAccount')} <Link to="/register">{t('auth.login.createAccount')}</Link>
       </p>
     </main>
   )

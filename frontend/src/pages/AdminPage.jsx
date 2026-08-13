@@ -51,7 +51,7 @@ export function AdminPage() {
     return (
       <main className="admin-page">
         <p className="admin-page__state">
-          <Link to="/entrar">{t('common.signInLinkText')}</Link> {t('admin.signInPrefix')}
+          <Link to="/login">{t('common.signInLinkText')}</Link> {t('admin.signInPrefix')}
         </p>
       </main>
     )
