@@ -131,6 +131,17 @@ Frontend (`frontend/.env`, ver `frontend/.env.example`):
 | --- | --- |
 | `VITE_API_URL` | URL do backend. O padrão já cobre o setup local. |
 
+Docker Compose (`.env` na raiz, ver [`.env.example`](.env.example), só
+usado por [`docker compose up`](#com-docker-compose)): as mesmas seis
+variáveis acima, mais as três abaixo que montam o `DATABASE_URL` do
+Postgres do compose.
+
+| Variável | Descrição |
+| --- | --- |
+| `POSTGRES_USER` | Usuário do Postgres do compose. |
+| `POSTGRES_PASSWORD` | Senha do Postgres do compose. |
+| `POSTGRES_DB` | Nome do banco do Postgres do compose. |
+
 ## Dados de teste (seed)
 
 Com as migrações aplicadas e as chaves de API preenchidas, rodar:
@@ -203,6 +214,9 @@ O que já funciona de ponta a ponta:
   digitação manual, os quatro retornos (válido, inválido, já utilizado,
   evento errado).
 - Script de seed com os usuários e eventos de teste.
+
+Escrito mas não confirmado rodando de ponta a ponta (ver limites abaixo):
+
 - `docker-compose.yml` (stretch): backend, frontend e Postgres em três
   containers, ver [Com Docker Compose](#com-docker-compose).
 
@@ -210,19 +224,26 @@ O que ainda falta, pela ordem prevista:
 
 - Deploy.
 
-Nenhum bug conhecido nas partes já implementadas. Dois limites conhecidos:
+Nenhum bug conhecido nas partes já implementadas. Três limites conhecidos:
 
-- O evento de filme criado pelo seed só aparece no dropdown "hoje" da tela de
-  portaria no dia em que o seed foi rodado (a data é fixada em meio-dia UTC
-  no momento do seed, não recalculada depois), então rodar o seed e testar
-  a portaria em dias diferentes exige rodar o seed de novo (idempotente
-  para usuários e eventos já existentes, mas não reagenda a data de um
-  evento que já existe).
-- O `docker-compose.yml` não foi validado com um `docker compose up` real:
-  o ambiente usado para desenvolver o projeto não tem Docker disponível
-  dentro dele (sem a feature de Docker-in-Docker no devcontainer). Os
-  arquivos foram revisados à mão e o YAML parseado com sucesso, mas não
-  há uma execução de ponta a ponta confirmando que a stack sobe limpa.
+- Uma reserva `pending` sem pagamento nem cancelamento explícito fica
+  presa nesse estado para sempre, segurando o lugar ou o estoque, já
+  que não existe expiração automática. Na prática isso só afeta quem
+  abandona o fluxo de pagamento sem clicar em "Desistir e cancelar
+  reserva"; o botão existe exatamente para dar essa saída, mas nada
+  libera o lugar sozinho se ninguém tomar essa ação.
+- O evento de filme criado pelo seed só aparece no dropdown "hoje" da
+  tela de portaria no dia em que o seed foi rodado (a data é fixada em
+  meio-dia UTC no momento do seed, não recalculada depois), então rodar
+  o seed e testar a portaria em dias diferentes exige rodar o seed de
+  novo (idempotente para usuários e eventos já existentes, mas não
+  reagenda a data de um evento que já existe).
+- O `docker-compose.yml` não foi validado com um `docker compose up`
+  real: o ambiente usado para desenvolver o projeto não tem Docker
+  disponível dentro dele (sem a feature de Docker-in-Docker no
+  devcontainer). Os arquivos foram revisados à mão e o YAML parseado
+  com sucesso, mas não há uma execução de ponta a ponta confirmando que
+  a stack sobe limpa.
 
 Esta seção será revisada por completo antes da entrega final, como o
 edital pede.
