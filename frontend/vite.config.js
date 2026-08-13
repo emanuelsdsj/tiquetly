@@ -9,6 +9,14 @@ export default defineConfig({
     // VS Code's automatic port forwarding does not reliably pick up a
     // server listening only on loopback (seen in practice, see RODAR_LOCAL.md).
     host: true,
+    watch: {
+      // The devcontainer's bind mount doesn't deliver inotify events
+      // reliably (seen in practice, edits saved to disk were served stale
+      // until the dev server was restarted by hand). Polling instead of
+      // relying on filesystem events fixes that at the cost of a bit of
+      // CPU.
+      usePolling: true,
+    },
   },
   test: {
     // Pure-logic unit tests only (lib/format.js, lib/apiErrors.js); the
