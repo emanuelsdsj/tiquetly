@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
 import { formatPrice } from '../lib/format'
-import { maskCardNumber, maskDigits, maskExpiry } from '../lib/inputMasks'
+import { isExpiryValid, maskCardNumber, maskDigits, maskExpiry } from '../lib/inputMasks'
 import './PaymentForm.css'
 
 const APPROVE_CARD = '4242 4242 4242 4242'
@@ -22,6 +22,10 @@ export function PaymentForm({ reservation, amount, onPaid, onDeclined }) {
 
   async function handleSubmit(formEvent) {
     formEvent.preventDefault()
+    if (!isExpiryValid(expiry)) {
+      setError(t('paymentForm.invalidExpiry'))
+      return
+    }
     setSubmitting(true)
     setError(null)
     try {
@@ -73,7 +77,7 @@ export function PaymentForm({ reservation, amount, onPaid, onDeclined }) {
           <input
             type="text"
             inputMode="numeric"
-            placeholder="MM/AA"
+            placeholder={t('paymentForm.expiryPlaceholder')}
             value={expiry}
             onChange={(event) => setExpiry(maskExpiry(event.target.value))}
             maxLength={5}

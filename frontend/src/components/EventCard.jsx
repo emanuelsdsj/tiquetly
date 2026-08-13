@@ -7,6 +7,9 @@ export function EventCard({ event }) {
   const { t, locale } = useLocale()
   return (
     <Link to={`/eventos/${event.id}`} className="event-card">
+      {event.image && (
+        <img className="event-card__image" src={event.image} alt="" aria-hidden="true" />
+      )}
       <div className="event-card__info">
         <span className={`event-card__tag event-card__tag--${event.category}`}>
           {t(`common.category.${event.category}`)}

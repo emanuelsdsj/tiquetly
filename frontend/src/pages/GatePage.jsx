@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { searchEvents } from '../api/events'
 import { validateTicket } from '../api/gate'
+import { Spinner } from '../components/Spinner'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
@@ -138,21 +139,30 @@ export function GatePage() {
 
       <label className="gate-page__field">
         {t('gate.eventLabel')}
-        <select
-          value={eventId}
-          onChange={(changeEvent) => {
-            setEventId(changeEvent.target.value)
-            setResult(null)
-          }}
-        >
-          <option value="">{t('gate.selectEvent')}</option>
-          {events?.map((event) => (
-            <option key={event.id} value={event.id}>
-              {event.title} · {event.venue}
-            </option>
-          ))}
-        </select>
+        {events === null && !error ? (
+          <span className="gate-page__field-loading">
+            <Spinner />
+            {t('gate.loadingEvents')}
+          </span>
+        ) : (
+          <select
+            value={eventId}
+            onChange={(changeEvent) => {
+              setEventId(changeEvent.target.value)
+              setResult(null)
+            }}
+          >
+            <option value="">{t('gate.selectEvent')}</option>
+            {events?.map((event) => (
+              <option key={event.id} value={event.id}>
+                {event.title} · {event.venue}
+              </option>
+            ))}
+          </select>
+        )}
       </label>
+
+      {events === null && error && <p className="gate-page__error">{error}</p>}
 
       {events && events.length === 0 && (
         <p className="gate-page__state">{t('gate.noEventsToday')}</p>

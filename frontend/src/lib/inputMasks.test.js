@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { maskCardNumber, maskDigits, maskExpiry } from './inputMasks'
+import { isExpiryValid, maskCardNumber, maskDigits, maskExpiry } from './inputMasks'
 
 describe('maskDigits', () => {
   it('strips non-digit characters', () => {
@@ -34,5 +34,34 @@ describe('maskExpiry', () => {
 
   it('ignores non-digits and caps at 4 digits', () => {
     expect(maskExpiry('01/02/2099')).toBe('01/02')
+  })
+})
+
+describe('isExpiryValid', () => {
+  const now = new Date('2026-08-13T12:00:00Z')
+
+  it('rejects an incomplete or malformed value', () => {
+    expect(isExpiryValid('', now)).toBe(false)
+    expect(isExpiryValid('01', now)).toBe(false)
+    expect(isExpiryValid('01/2', now)).toBe(false)
+  })
+
+  it('rejects a month outside 01-12', () => {
+    expect(isExpiryValid('00/30', now)).toBe(false)
+    expect(isExpiryValid('13/30', now)).toBe(false)
+  })
+
+  it('rejects a year that has already passed', () => {
+    expect(isExpiryValid('01/25', now)).toBe(false)
+  })
+
+  it('rejects a month that has already passed in the current year', () => {
+    expect(isExpiryValid('07/26', now)).toBe(false)
+  })
+
+  it('accepts the current month and any future month', () => {
+    expect(isExpiryValid('08/26', now)).toBe(true)
+    expect(isExpiryValid('09/26', now)).toBe(true)
+    expect(isExpiryValid('12/30', now)).toBe(true)
   })
 })
