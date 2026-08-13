@@ -79,6 +79,20 @@ def _get_or_create_seatmap_event(session: Session, organizer: User) -> Event:
     if existing:
         return existing
 
+    now = datetime.now(UTC)
+    # Same "today" trick as seed.py, so the gate screen's "today" dropdown
+    # finds this event, but a fixed noon broke as soon as ADR 0025 started
+    # hiding past-dated events from the plain browse search: any CI run
+    # starting after noon UTC (unpredictable, CI has no fixed time of day)
+    # created the fixture already in the past, so reserve-seatmap.spec.js
+    # and gate.spec.js could never find it on the home page to begin with.
+    # A short buffer from the actual fixture-creation moment keeps it
+    # reservable regardless of when in the day the job runs, clamped to
+    # not cross into tomorrow (and out of "today" for the gate dropdown)
+    # on the rare run that starts in the last half hour before midnight
+    # UTC.
+    event_time = min(now + timedelta(minutes=30), now.replace(hour=23, minute=59, second=0, microsecond=0))
+
     return event_service.create_event(
         session,
         organizer,
@@ -88,9 +102,7 @@ def _get_or_create_seatmap_event(session: Session, organizer: User) -> Event:
             title="E2E Test Movie",
             description="Fixture event for the Playwright suite.",
             category=EventCategory.movie,
-            # Pinned to today, same trick as seed.py: the gate screen's
-            # "today" dropdown only lists events happening today.
-            date=datetime.now(UTC).replace(hour=12, minute=0, second=0, microsecond=0),
+            date=event_time,
             venue="E2E Cinema",
             capacity=40,
             price=32.0,

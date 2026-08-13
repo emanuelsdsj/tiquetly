@@ -99,6 +99,25 @@ def _get_or_create_movie_event(session: Session, organizer: User) -> tuple[Event
         return None, False
     catalog_event = results[0]
 
+    # Today (not a few days out like the show event): the gate screen only
+    # lists events happening today (GatePage's own date_from/date_to
+    # filter), and this is the event carrying the pre-validated ticket the
+    # gate demo needs to find. Used to be pinned to a fixed noon UTC so the
+    # calendar date would never roll over regardless of what time the seed
+    # ran (a `+ timedelta(hours=6)` run late in the UTC day was landing on
+    # tomorrow); that stopped being safe once ADR 0025 started hiding
+    # past-dated events from the plain browse search, since a seed run
+    # after noon UTC created the event already in the past, invisible on
+    # the home page from the moment it was seeded. `now + 30 minutes`
+    # keeps it reservable regardless of what time the seed runs, clamped
+    # to 23:59 UTC so it still cannot roll over to tomorrow and miss the
+    # gate screen's "today" window on a run late in the UTC day. Still
+    # only holds on the day the seed runs, and only lines up with a gate
+    # operator's own "today" if their clock is reasonably close to UTC,
+    # see "O que não funciona como esperado" in the README.
+    now = datetime.now(UTC)
+    movie_date = min(now + timedelta(minutes=30), now.replace(hour=23, minute=59, second=0, microsecond=0))
+
     event = event_service.create_event(
         session,
         organizer,
@@ -109,19 +128,7 @@ def _get_or_create_movie_event(session: Session, organizer: User) -> tuple[Event
             image=catalog_event.image,
             description=catalog_event.description,
             category=EventCategory.movie,
-            # Pinned to noon UTC today, not a few days out like the show
-            # event: the gate screen only lists events happening today
-            # (GatePage's own date_from/date_to filter), and this is the
-            # event carrying the pre-validated ticket the gate demo needs
-            # to find. Noon UTC rather than "now + a few hours" so the
-            # calendar date never rolls over regardless of what time the
-            # seed happens to run (a `+ timedelta(hours=6)` run late in
-            # the UTC day was landing on tomorrow, missed on the first
-            # try). Still only holds on the day the seed runs, and only
-            # lines up with a gate operator's own "today" if their clock
-            # is reasonably close to UTC, see "O que não funciona como
-            # esperado" in the README.
-            date=datetime.now(UTC).replace(hour=12, minute=0, second=0, microsecond=0),
+            date=movie_date,
             # TMDb has no venue of its own, this is a movie session, not
             # the film itself.
             venue="Cinemark Tiquetly",

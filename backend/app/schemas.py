@@ -1,8 +1,8 @@
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, model_validator
 
 from app.models import (
     EventCategory,
@@ -14,6 +14,25 @@ from app.models import (
     TicketStatus,
     UserRole,
 )
+
+
+def _as_utc(value: datetime | None) -> datetime | None:
+    # SQLite strips tzinfo on round-trip: every datetime this app writes is
+    # already UTC (`_utcnow()` in models.py, or the frontend's own
+    # `.toISOString()` before submitting an event date), but reading it
+    # back gives a naive value. Pydantic then serializes a naive datetime
+    # without a "Z"/offset, and `new Date(...)` on the frontend reads an
+    # offset-less ISO string as the browser's *local* time, not UTC. That
+    # silently shifted every timestamp doing real arithmetic (the
+    # reservation countdown) by the browser's UTC offset, while pure
+    # display code happened to look right regardless of timezone, since
+    # formatting the same wrongly-localized value back in the same local
+    # zone reproduces the original wall-clock digits, one error cancelling
+    # the read of the other. Reattaching UTC here, at the API boundary,
+    # fixes both instead of relying on that cancellation.
+    if value is not None and value.tzinfo is None:
+        return value.replace(tzinfo=UTC)
+    return value
 
 
 class UserCreate(BaseModel):
@@ -105,6 +124,8 @@ class EventRead(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    _normalize_dates = field_validator("date", "created_at", mode="after")(_as_utc)
+
 
 class GeneralReservationCreate(BaseModel):
     quantity: int = Field(gt=0)
@@ -119,6 +140,8 @@ class ReservationRead(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    _normalize_dates = field_validator("created_at", mode="after")(_as_utc)
 
 
 class SeatRead(BaseModel):
@@ -160,6 +183,8 @@ class TicketRead(BaseModel):
     event: EventRead
     seat: SeatRead | None = None
 
+    _normalize_dates = field_validator("used_at", "created_at", mode="after")(_as_utc)
+
 
 class TicketValidationCreate(BaseModel):
     event_id: int
@@ -176,3 +201,5 @@ class TicketValidationRead(BaseModel):
     event_title: str | None = None
     seat: SeatRead | None = None
     used_at: datetime | None = None
+
+    _normalize_dates = field_validator("used_at", mode="after")(_as_utc)

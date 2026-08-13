@@ -15,6 +15,7 @@ the ticket at the door.
 ## Contents
 
 - [Stack](#stack)
+- [Architecture](#architecture)
 - [Running the project](#running-the-project)
 - [Environment variables](#environment-variables)
 - [Test data (seed)](#test-data-seed)
@@ -32,6 +33,79 @@ the ticket at the door.
   (`passlib`).
 - Development environment: devcontainer (Python 3.12 + Node 20 via
   feature).
+
+## Architecture
+
+```mermaid
+flowchart TB
+    subgraph clients["Clients (browser)"]
+        organizer["Organizer"]
+        customer["Customer"]
+        gatekeeper["Gatekeeper"]
+        admin["Admin"]
+    end
+
+    subgraph frontend["Frontend, React + Vite, plain JavaScript (Vercel)"]
+        spa["SPA<br/>catalog browsing · event management<br/>reservation flow · my tickets · gate scanner"]
+    end
+
+    subgraph backend["Backend, FastAPI (Railway)"]
+        api["API routes<br/>auth · admin · events · reservations · tickets · gate"]
+        auth["Auth<br/>JWT + bcrypt, role-based dependencies"]
+        svc["Service layer<br/>reservation · payment simulation · ticketing · validation"]
+        catalog["Catalog adapter<br/>common CatalogProvider interface"]
+        qr["QR issuing<br/>HMAC-signed public code"]
+    end
+
+    db[("Database<br/>SQLite (dev) / Postgres (Railway, prod)<br/>SQLModel + Alembic")]
+
+    subgraph external["External catalog APIs"]
+        tm["Ticketmaster Discovery"]
+        tmdb["TMDb"]
+    end
+
+    organizer --> spa
+    customer --> spa
+    gatekeeper --> spa
+    admin --> spa
+
+    spa -- "HTTPS / JSON" --> api
+    api --> auth
+    api --> svc
+    svc --> catalog
+    svc --> qr
+    svc --> db
+    catalog --> tm
+    catalog --> tmdb
+```
+
+- The SPA never talks to Ticketmaster or TMDb directly; every catalog
+  lookup goes through the backend, the only place holding the external
+  API keys.
+- `catalog` normalizes both external sources behind one interface
+  (`CatalogProvider`) before anything else in the backend sees them,
+  dispatched by category from a single `GET /catalog/search` endpoint.
+- The one guarantee the whole project depends on: a seat, or a unit of
+  general-admission capacity, is never sold twice, even under
+  concurrent requests. Both reservation modes resolve this the same
+  way, one `UPDATE` whose own `WHERE` clause re-checks availability and
+  applies the change atomically, never a separate read followed by a
+  separate write with a gap in between for another request to land in.
+- Symmetrical guarantee on the gate side: the same ticket code
+  transitions from valid to used exactly once, guarded the same way.
+- No real-time seat map or availability channel: the guarded `UPDATE`
+  above is the actual guarantee, a live-updating screen would only be a
+  UX nicety on top of it, not a substitute for it. The full reasoning
+  for every choice on this page, including the ones considered and
+  discarded, is tracked as ADRs in version control (not included in
+  this public repository yet, see [Design decisions](#design-decisions)
+  below for the running summary).
+- Deploy topology: static frontend build on Vercel
+  ([tiquetly.vercel.app](https://tiquetly.vercel.app)), backend + a
+  managed Postgres instance on Railway, one service each. Local
+  development runs the whole stack (backend, frontend, SQLite file)
+  inside the devcontainer, no external services required except the two
+  catalog API keys.
 
 ## Running the project
 
@@ -240,12 +314,12 @@ https://tiquetly.vercel.app/
 No known bugs in the parts already implemented. Two known limits:
 
 - The movie event created by the seed only shows up in the gate
-  screen's "today" dropdown on the day the seed was run (the date is
-  fixed at noon UTC at seed time, not recalculated afterward), so
-  running the seed and testing the gate on different days requires
-  running the seed again (idempotent for users and events that already
-  exist, but it doesn't reschedule the date of an event that already
-  exists).
+  screen's "today" dropdown, and only stays visible on the browse page
+  at all (see ADR 0025), on the day the seed was run (the date is set
+  a little past seed time, not recalculated afterward), so running the
+  seed and testing the gate on different days requires running the
+  seed again (idempotent for users and events that already exist, but
+  it doesn't reschedule the date of an event that already exists).
 - `docker-compose.yml` was not validated with a real `docker compose
   up`: the environment used to develop the project has no Docker
   available inside it (no Docker-in-Docker feature in the devcontainer).

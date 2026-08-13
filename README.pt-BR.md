@@ -238,9 +238,10 @@ https://tiquetly.vercel.app/
 Nenhum bug conhecido nas partes já implementadas. Dois limites conhecidos:
 
 - O evento de filme criado pelo seed só aparece no dropdown "hoje" da
-  tela de portaria no dia em que o seed foi rodado (a data é fixada em
-  meio-dia UTC no momento do seed, não recalculada depois), então rodar
-  o seed e testar a portaria em dias diferentes exige rodar o seed de
+  tela de portaria, e só continua visível na busca de navegação (ver
+  ADR 0025), no dia em que o seed foi rodado (a data é fixada um pouco
+  depois do momento do seed, não recalculada depois), então rodar o
+  seed e testar a portaria em dias diferentes exige rodar o seed de
   novo (idempotente para usuários e eventos já existentes, mas não
   reagenda a data de um evento que já existe).
 - O `docker-compose.yml` não foi validado com um `docker compose up`

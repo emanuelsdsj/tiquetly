@@ -60,6 +60,12 @@ def test_create_event_publishes_a_general_admission_show(client, session):
     assert body["status"] == "published"
     assert body["capacity"] == 3
     assert session.exec(select(Seat)).first() is None
+    # SQLite strips tzinfo on round-trip; without _as_utc in schemas.py
+    # this comes back naive, which the frontend's `new Date(...)` would
+    # read as local time instead of UTC (see the same assertion in
+    # test_reservations_api.py for the arithmetic this actually broke).
+    assert body["date"].endswith("Z")
+    assert body["created_at"].endswith("Z")
 
 
 def test_create_event_generates_seats_for_a_seatmap_movie(client, session):

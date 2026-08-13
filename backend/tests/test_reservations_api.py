@@ -79,6 +79,12 @@ def test_reserve_creates_a_pending_reservation_and_updates_capacity(client, sess
     body = response.json()
     assert body["status"] == "pending"
     assert body["quantity"] == 2
+    # SQLite strips tzinfo on round-trip; without _as_utc in schemas.py
+    # this comes back as a naive string, which `new Date(...)` on the
+    # frontend reads as local time instead of UTC. A regression here
+    # would not fail the countdown at rest, only its arithmetic, so it is
+    # worth asserting explicitly rather than trusting a visual check.
+    assert body["created_at"].endswith("Z")
 
     event = client.get(f"/events/{event_id}").json()
     assert event["reserved_count"] == 2
