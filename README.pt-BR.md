@@ -14,6 +14,7 @@ paga de forma simulada, e a portaria valida o ingresso na entrada.
 ## Sumário
 
 - [Stack](#stack)
+- [Arquitetura](#arquitetura)
 - [Como rodar](#como-rodar)
 - [Variáveis de ambiente](#variáveis-de-ambiente)
 - [Dados de teste (seed)](#dados-de-teste-seed)
@@ -31,6 +32,82 @@ paga de forma simulada, e a portaria valida o ingresso na entrada.
   (`passlib`).
 - Ambiente de desenvolvimento: devcontainer (Python 3.12 + Node 20 via
   feature).
+
+## Arquitetura
+
+```mermaid
+flowchart TB
+    subgraph clients["Clientes (navegador)"]
+        organizer["Organizador"]
+        customer["Cliente"]
+        gatekeeper["Portaria"]
+        admin["Admin"]
+    end
+
+    subgraph frontend["Frontend, React + Vite, JavaScript puro (Vercel)"]
+        spa["SPA<br/>navegação de catálogo · gerenciamento de evento<br/>fluxo de reserva · meus ingressos · leitor da portaria"]
+    end
+
+    subgraph backend["Backend, FastAPI (Railway)"]
+        api["Rotas da API<br/>auth · admin · eventos · reservas · ingressos · portaria"]
+        auth["Auth<br/>JWT + bcrypt, dependencies por papel"]
+        svc["Camada de serviço<br/>reserva · simulação de pagamento · emissão de ingresso · validação"]
+        catalog["Adapter de catálogo<br/>interface comum CatalogProvider"]
+        qr["Emissão de QR<br/>código público assinado com HMAC"]
+    end
+
+    db[("Banco de dados<br/>SQLite (dev) / Postgres (Railway, prod)<br/>SQLModel + Alembic")]
+
+    subgraph external["APIs externas de catálogo"]
+        tm["Ticketmaster Discovery"]
+        tmdb["TMDb"]
+    end
+
+    organizer --> spa
+    customer --> spa
+    gatekeeper --> spa
+    admin --> spa
+
+    spa -- "HTTPS / JSON" --> api
+    api --> auth
+    api --> svc
+    svc --> catalog
+    svc --> qr
+    svc --> db
+    catalog --> tm
+    catalog --> tmdb
+```
+
+- A SPA nunca fala diretamente com a Ticketmaster ou a TMDb; toda busca
+  no catálogo passa pelo backend, o único lugar que guarda as chaves das
+  APIs externas.
+- `catalog` normaliza as duas fontes externas atrás de uma interface só
+  (`CatalogProvider`) antes de qualquer outra parte do backend enxergar
+  esses dados, despachado por categoria a partir de um único endpoint
+  `GET /catalog/search`.
+- A garantia da qual o projeto inteiro depende: um assento, ou uma
+  unidade de capacidade de admissão geral, nunca é vendido duas vezes,
+  mesmo sob requisições concorrentes. Os dois modos de reserva resolvem
+  isso do mesmo jeito, um único `UPDATE` cuja própria cláusula `WHERE`
+  rechecha a disponibilidade e aplica a mudança de forma atômica, nunca
+  uma leitura separada seguida de uma escrita separada com um intervalo
+  no meio pra outra requisição ocupar.
+- Garantia simétrica do lado da portaria: o mesmo código de ingresso
+  transiciona de válido pra usado exatamente uma vez, guardado da mesma
+  forma.
+- Sem mapa de assentos nem canal de disponibilidade em tempo real: o
+  `UPDATE` guardado acima é a garantia de verdade, uma tela que atualiza
+  ao vivo seria só um refinamento de UX em cima dela, não um substituto.
+  O raciocínio completo de cada escolha desta página, incluindo as
+  descartadas pelo caminho, fica registrado como ADRs no controle de
+  versão (ainda não incluído neste repositório público, ver
+  [Decisões de design](#decisões-de-design) abaixo pro resumo corrente).
+- Topologia de deploy: build estático do frontend na Vercel
+  ([tiquetly.vercel.app](https://tiquetly.vercel.app)), backend mais uma
+  instância gerenciada de Postgres na Railway, um serviço cada. O
+  desenvolvimento local roda a stack inteira (backend, frontend, arquivo
+  SQLite) dentro do devcontainer, sem nenhum serviço externo necessário
+  além das duas chaves de API de catálogo.
 
 ## Como rodar
 
