@@ -35,7 +35,6 @@ export function CreateEventPage() {
   const [results, setResults] = useState(null)
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState(null)
-  const [cityOptions, setCityOptions] = useState([])
 
   const [selected, setSelected] = useState(null)
   const [form, setForm] = useState(null)
@@ -51,7 +50,6 @@ export function CreateEventPage() {
     setCity('')
     setYear('')
     setSearchError(null)
-    setCityOptions([])
   }
 
   useEffect(() => {
@@ -72,23 +70,6 @@ export function CreateEventPage() {
     return () => clearTimeout(timeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [category, keyword, city, year])
-
-  // City suggestions come from their own, separate request that never
-  // includes the city filter itself: the main search above already narrows
-  // `results` to whatever the organizer typed, so deriving suggestions from
-  // it would shrink the list toward zero as they type instead of helping
-  // them find the spelling. This keeps the suggestion set stable, driven
-  // only by category and keyword.
-  useEffect(() => {
-    if (category !== 'show') return undefined
-    const timeout = setTimeout(() => {
-      searchCatalog(category, keyword || undefined, token, {})
-        .then((events) => setCityOptions([...new Set(events.map((r) => r.city).filter(Boolean))]))
-        .catch(() => {})
-    }, 300)
-    return () => clearTimeout(timeout)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, keyword])
 
   function selectCatalogEvent(catalogEvent) {
     setSelected(catalogEvent)
@@ -195,24 +176,15 @@ export function CreateEventPage() {
               aria-label={t('createEvent.searchAriaLabel')}
             />
             {category === 'show' && (
-              <>
-                <span className="create-event-page__city-field">
-                  <input
-                    type="text"
-                    list="create-event-city-options"
-                    className="create-event-page__search-filter"
-                    placeholder={t('createEvent.cityPlaceholder')}
-                    value={city}
-                    onChange={(e) => setCity(e.target.value)}
-                    aria-label={t('createEvent.cityAriaLabel')}
-                  />
-                </span>
-                <datalist id="create-event-city-options">
-                  {cityOptions.map((option) => (
-                    <option key={option} value={option} />
-                  ))}
-                </datalist>
-              </>
+              <input
+                type="text"
+                className="create-event-page__search-filter create-event-page__city-field"
+                placeholder={t('createEvent.cityPlaceholder')}
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                aria-label={t('createEvent.cityAriaLabel')}
+                autoComplete="off"
+              />
             )}
             {category === 'movie' && (
               <input
@@ -282,7 +254,7 @@ export function CreateEventPage() {
       )}
 
       {selected && form && (
-        <>
+        <div className="create-event-page__layout">
           <div className="catalog-result catalog-result--picked">
             {selected.image && (
               <img
@@ -368,7 +340,7 @@ export function CreateEventPage() {
               {submitting ? t('createEvent.publishing') : t('createEvent.publish')}
             </button>
           </form>
-        </>
+        </div>
       )}
     </main>
   )

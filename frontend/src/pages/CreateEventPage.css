@@ -90,8 +90,16 @@
   font-size: 0.95rem;
 }
 
-.create-event-page__search-filter {
+/* Compound selector needed to outweigh `.create-event-page__search input`
+   above (class+element beats a single class): without it, the year field
+   inherited flex: 1 from that rule and stretched to half the row instead
+   of staying a compact filter alongside the keyword search. */
+.create-event-page__search .create-event-page__search-filter {
   flex: 0 0 140px;
+  /* Flex items default to min-width: auto, which resolves to the input's
+     native intrinsic width (well over 140px) and wins over flex-basis
+     even with flex-shrink: 0. Zeroing it lets the basis actually apply. */
+  min-width: 0;
 }
 
 /* Number spinner on the year field reads as leftover browser chrome
@@ -106,22 +114,14 @@
   -moz-appearance: textfield;
 }
 
-/* The city field's native datalist dropdown arrow isn't reliably hidden
-   by ::-webkit-calendar-picker-indicator across Chrome versions, so it's
-   clipped instead: the input is drawn wider than its visible box and the
-   overflow, where the arrow renders, is cut off. The wrapper takes over
-   the border so the clipped edge still looks like a normal field. */
-.create-event-page__city-field {
-  flex: 0 0 140px;
-  overflow: hidden;
-  border-radius: 6px;
-  border: 1px solid var(--ink-muted);
-}
-
-.create-event-page__city-field .create-event-page__search-filter {
-  width: calc(100% + 28px);
-  border: none;
-  border-radius: 0;
+/* City is a free-text filter (no suggestion list, see ADR 0022: dropping
+   the datalist because a single-city Ticketmaster result made it useless
+   in practice), just a bit wider than the year field since city names
+   run longer than four digits. Needs the same two-class specificity as
+   the shared rule above (also two classes on this element) to actually
+   win: a single-class override loses to it regardless of source order. */
+.create-event-page__search-filter.create-event-page__city-field {
+  flex-basis: 240px;
 }
 
 .create-event-page__results {
@@ -183,6 +183,27 @@
   font-family: var(--font-body);
   font-size: 0.85rem;
   cursor: pointer;
+}
+
+/* Once an event is picked, the card and the details form sit side by
+   side instead of stacked (same "use the width" treatment as the event
+   detail page): picked card stays a fixed, readable width, form takes
+   the rest. Wraps to stacked below the breakpoint. */
+.create-event-page__layout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 32px;
+  align-items: flex-start;
+}
+
+.create-event-page__layout .catalog-result--picked {
+  flex: 1 1 320px;
+  max-width: 380px;
+  margin-bottom: 0;
+}
+
+.create-event-page__layout .create-event-page__details {
+  flex: 1 1 420px;
 }
 
 .create-event-page__details {
