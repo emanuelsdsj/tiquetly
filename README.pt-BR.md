@@ -167,10 +167,12 @@ npm run dev
 
 ### Com Docker Compose
 
-Alternativa que não depende do devcontainer nem de instalar Python/Node
-na máquina: sobe backend, frontend e um Postgres real (não o SQLite do
-dev local, ver [Decisões de design](#decisões-de-design)) em três
-containers.
+Alternativa que não depende de instalar Python/Node na máquina: sobe
+backend, frontend e um Postgres real (não o SQLite do dev local, ver
+[Decisões de design](#decisões-de-design)) em três containers. Funciona
+tanto fora do devcontainer (qualquer máquina com Docker e Docker Compose
+instalados) quanto de dentro dele, já que o devcontainer tem a feature
+`docker-in-docker` ativada.
 
 ```
 cp .env.example .env   # preencher as chaves de API e trocar os segredos
@@ -185,11 +187,8 @@ três serviços estiverem de pé, se quiser:
 docker compose exec backend python -m app.seed
 ```
 
-> Este caminho não pôde ser testado com um `docker compose up` real
-> durante o desenvolvimento: o devcontainer usado para construir o
-> projeto não tem Docker disponível dentro dele. Os arquivos foram
-> revisados à mão e o `docker-compose.yml` validado como YAML, mas não
-> executados de ponta a ponta. Ver [Estado atual](#estado-atual).
+`docker compose down` para a stack; `docker compose down -v` também
+apaga o volume do Postgres, para recomeçar do zero.
 
 ## Variáveis de ambiente
 
@@ -303,16 +302,16 @@ O que já funciona de ponta a ponta:
   digitação manual, os quatro retornos (válido, inválido, já utilizado,
   evento errado).
 - Script de seed com os usuários e eventos de teste.
-
-Escrito mas não confirmado rodando de ponta a ponta (ver limites abaixo):
-
-- `docker-compose.yml` (stretch): backend, frontend e Postgres em três
-  containers, ver [Com Docker Compose](#com-docker-compose).
+- `docker-compose.yml` (stretch): backend, frontend e um Postgres real
+  em três containers, confirmado de ponta a ponta (build, migrations,
+  seed, e o fluxo completo de busca/reserva/pagamento/ingresso dirigido
+  por um browser de verdade contra a stack em container), ver
+  [Com Docker Compose](#com-docker-compose).
 
 Demo no ar (Vercel + Railway, ver [Decisões de design](#decisões-de-design)):
 https://tiquetly.vercel.app/
 
-Nenhum bug conhecido nas partes já implementadas. Dois limites conhecidos:
+Nenhum bug conhecido nas partes já implementadas. Um limite conhecido:
 
 - O evento de filme criado pelo seed só aparece no dropdown "hoje" da
   tela de portaria, e só continua visível na busca de navegação (ver
@@ -321,12 +320,6 @@ Nenhum bug conhecido nas partes já implementadas. Dois limites conhecidos:
   seed e testar a portaria em dias diferentes exige rodar o seed de
   novo (idempotente para usuários e eventos já existentes, mas não
   reagenda a data de um evento que já existe).
-- O `docker-compose.yml` não foi validado com um `docker compose up`
-  real: o ambiente usado para desenvolver o projeto não tem Docker
-  disponível dentro dele (sem a feature de Docker-in-Docker no
-  devcontainer). Os arquivos foram revisados à mão e o YAML parseado
-  com sucesso, mas não há uma execução de ponta a ponta confirmando que
-  a stack sobe limpa.
 
 Esta seção será revisada por completo antes da entrega final, como o
 edital pede.

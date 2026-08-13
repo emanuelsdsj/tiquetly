@@ -165,10 +165,12 @@ npm run dev
 
 ### With Docker Compose
 
-An alternative that doesn't depend on the devcontainer or installing
-Python/Node on the machine: brings up backend, frontend, and a real
-Postgres (not the local dev SQLite, see
-[Design decisions](#design-decisions)) in three containers.
+An alternative that doesn't depend on installing Python/Node on the
+machine: brings up backend, frontend, and a real Postgres (not the
+local dev SQLite, see [Design decisions](#design-decisions)) in three
+containers. Works both outside the devcontainer (any machine with
+Docker and Docker Compose installed) and from inside it, since the
+devcontainer has the `docker-in-docker` feature enabled.
 
 ```
 cp .env.example .env   # fill in the API keys and change the secrets
@@ -183,11 +185,8 @@ services are up, if you want it:
 docker compose exec backend python -m app.seed
 ```
 
-> This path could not be tested with a real `docker compose up` during
-> development: the devcontainer used to build the project has no Docker
-> available inside it. The files were reviewed by hand and the
-> `docker-compose.yml` validated as YAML, but not run end to end. See
-> [Current state](#current-state).
+`docker compose down` stops the stack; `docker compose down -v` also
+drops the Postgres volume, for a clean slate.
 
 ## Environment variables
 
@@ -302,16 +301,16 @@ What already works end to end:
   by hand, the four outcomes (valid, invalid, already used, wrong
   event).
 - Seed script with test users and events.
-
-Written but not confirmed running end to end (see the limits below):
-
-- `docker-compose.yml` (stretch goal): backend, frontend, and Postgres
-  in three containers, see [With Docker Compose](#with-docker-compose).
+- `docker-compose.yml` (stretch goal): backend, frontend, and a real
+  Postgres in three containers, confirmed end to end (build, migrations,
+  seed, and the full browse/reserve/pay/ticket flow driven by a real
+  browser against the containerized stack), see
+  [With Docker Compose](#with-docker-compose).
 
 Live demo (Vercel + Railway, see [Design decisions](#design-decisions)):
 https://tiquetly.vercel.app/
 
-No known bugs in the parts already implemented. Two known limits:
+No known bugs in the parts already implemented. One known limit:
 
 - The movie event created by the seed only shows up in the gate
   screen's "today" dropdown, and only stays visible on the browse page
@@ -320,11 +319,6 @@ No known bugs in the parts already implemented. Two known limits:
   seed and testing the gate on different days requires running the
   seed again (idempotent for users and events that already exist, but
   it doesn't reschedule the date of an event that already exists).
-- `docker-compose.yml` was not validated with a real `docker compose
-  up`: the environment used to develop the project has no Docker
-  available inside it (no Docker-in-Docker feature in the devcontainer).
-  The files were reviewed by hand and the YAML parsed successfully, but
-  there's no end-to-end run confirming the stack comes up clean.
 
 This section will be fully revised before the final submission, as the
 assignment asks.
