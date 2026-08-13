@@ -1,0 +1,114 @@
+.featured-carousel {
+  position: relative;
+  margin-bottom: 48px;
+  padding: 0 52px;
+}
+
+.featured-carousel__viewport {
+  overflow: hidden;
+  padding: 16px 0 32px;
+}
+
+.featured-carousel__track {
+  display: flex;
+  gap: 24px;
+  transition: transform 0.4s ease;
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featured-carousel__track {
+    transition: none;
+  }
+}
+
+.featured-carousel__item {
+  flex: 0 0 280px;
+  transition:
+    transform 0.4s ease,
+    opacity 0.4s ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .featured-carousel__item {
+    transition: none;
+  }
+}
+
+.featured-carousel__arrow {
+  position: absolute;
+  top: 44%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ink-raised);
+  color: var(--ink-text);
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  z-index: 3;
+}
+
+.featured-carousel__arrow:hover {
+  background: var(--marquee-gold);
+  color: #201a10;
+}
+
+.featured-carousel__arrow:focus-visible {
+  outline: 2px solid var(--marquee-gold);
+  outline-offset: 2px;
+}
+
+.featured-carousel__arrow--prev {
+  left: 4px;
+}
+
+.featured-carousel__arrow--next {
+  right: 4px;
+}
+
+.featured-carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: -22px;
+}
+
+.featured-carousel__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  padding: 0;
+  background: var(--ink-raised);
+  cursor: pointer;
+}
+
+.featured-carousel__dot--active {
+  width: 22px;
+  border-radius: 4px;
+  background: var(--marquee-gold);
+}
+
+.featured-carousel__dot:focus-visible {
+  outline: 2px solid var(--marquee-gold);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .featured-carousel {
+    padding: 0 40px;
+  }
+
+  .featured-carousel__arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 1.3rem;
+  }
+}

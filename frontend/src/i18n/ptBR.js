@@ -24,6 +24,10 @@ export const ptBR = {
     priceNoLimit: 'Sem limite',
     loading: 'Carregando eventos...',
     empty: 'Nenhum evento encontrado com esses filtros. Tente ajustar a busca.',
+    featuredPrev: 'Evento anterior',
+    featuredNext: 'Próximo evento',
+    featuredDotsAriaLabel: 'Eventos em destaque',
+    featuredGoToSlide: (params) => `Ir para o evento em destaque ${params.position}`,
   },
   eventDetail: {
     loading: 'Carregando evento...',

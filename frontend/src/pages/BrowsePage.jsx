@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { searchEvents } from '../api/events'
 import { EventCard } from '../components/EventCard'
+import { FeaturedCarousel } from '../components/FeaturedCarousel'
 import { Spinner } from '../components/Spinner'
 import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
@@ -13,6 +14,7 @@ export function BrowsePage() {
   const [priceMax, setPriceMax] = useState('')
   const [events, setEvents] = useState(null)
   const [error, setError] = useState(null)
+  const isFiltering = q !== '' || category !== '' || priceMax !== ''
 
   const categories = [
     { value: '', label: t('browse.categoryAll') },
@@ -89,7 +91,11 @@ export function BrowsePage() {
         <p className="browse-page__state">{t('browse.empty')}</p>
       )}
 
-      {!error && events !== null && events.length > 0 && (
+      {!error && events !== null && events.length > 0 && !isFiltering && (
+        <FeaturedCarousel events={events} />
+      )}
+
+      {!error && events !== null && events.length > 0 && isFiltering && (
         <div className="browse-page__grid">
           {events.map((event) => (
             <EventCard key={event.id} event={event} />

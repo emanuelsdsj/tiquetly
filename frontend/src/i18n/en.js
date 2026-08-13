@@ -24,6 +24,10 @@ export const en = {
     priceNoLimit: 'No limit',
     loading: 'Loading events...',
     empty: 'No events found with these filters. Try adjusting the search.',
+    featuredPrev: 'Previous event',
+    featuredNext: 'Next event',
+    featuredDotsAriaLabel: 'Featured events',
+    featuredGoToSlide: (params) => `Go to featured event ${params.position}`,
   },
   eventDetail: {
     loading: 'Loading event...',
