@@ -96,3 +96,36 @@ def test_search_events_filters_by_price_range(client, session):
     body = response.json()
     assert len(body) == 1
     assert body[0]["title"] == "A Odisseia"
+
+
+def test_search_events_excludes_a_past_dated_event_by_default(client, session):
+    token = _organizer_token(session)
+    headers = {"Authorization": f"Bearer {token}"}
+    past_payload = {**SHOW_PAYLOAD, "date": "2020-01-01T00:00:00Z"}
+    client.post("/events", json=past_payload, headers=headers)
+    client.post("/events", json=MOVIE_PAYLOAD, headers=headers)
+
+    response = client.get("/events")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["title"] == "A Odisseia"
+
+
+def test_search_events_still_returns_a_past_dated_event_with_an_explicit_date_from(client, session):
+    # The gate screen's own "today" query (date_from + date_to for the
+    # local day) must still find an event that already started (ADR
+    # 0025): the auto-exclusion only applies to the plain, no-date-filter
+    # browse case.
+    token = _organizer_token(session)
+    headers = {"Authorization": f"Bearer {token}"}
+    past_payload = {**SHOW_PAYLOAD, "date": "2020-01-01T00:00:00Z"}
+    client.post("/events", json=past_payload, headers=headers)
+
+    response = client.get("/events", params={"date_from": "2019-12-31T00:00:00Z"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 1
+    assert body[0]["date"].startswith("2020-01-01")

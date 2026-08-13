@@ -300,3 +300,9 @@ and discarded lives in the project's version control.
   above (ADR 0024). The purchase screen shows a live countdown toward the
   same deadline, advisory only: the backend enforces it regardless of
   what the customer's own clock shows.
+- A published event whose date has already passed drops out of the
+  plain browse search automatically (a read-time filter, `status` keeps
+  reading `published`, no unpublish happens on its own), so a customer
+  never lands on something they cannot actually attend. The gate
+  screen's own "today" query is unaffected, an event that already
+  started is exactly what a gatekeeper needs to find there (ADR 0025).

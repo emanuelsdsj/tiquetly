@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlmodel import Session, select
 
@@ -71,6 +71,16 @@ def search_published_events(
         statement = statement.where(Event.category == category)
     if date_from:
         statement = statement.where(Event.date >= date_from)
+    elif date_to is None:
+        # No date filter at all is the plain customer browse case (ADR
+        # 0025): a past event never shows there, even though its `status`
+        # column still reads "published" (the organizer's own listing is
+        # unaffected, see list_events_for_organizer). An explicit
+        # date_from (or a date_to with no date_from, the gate screen's
+        # "today" range where the event may have already started) is left
+        # alone: the caller asked for a specific window and knows what it
+        # wants, this default should not second-guess it.
+        statement = statement.where(Event.date >= datetime.now(UTC))
     if date_to:
         statement = statement.where(Event.date <= date_to)
     if price_min is not None:

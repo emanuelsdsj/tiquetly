@@ -298,3 +298,9 @@ descartadas fica no controle de versão do projeto.
   contagem regressiva ao vivo até o mesmo prazo, só consultiva: o
   backend aplica o prazo independente do que o relógio do cliente
   mostra.
+- Um evento publicado com data já passada some sozinho da busca simples
+  de navegação (um filtro no momento da leitura, `status` continua
+  lendo `published`, nenhuma despublicação acontece sozinha), então um
+  cliente nunca cai em algo que não dá mais pra comparecer. A própria
+  busca "hoje" da tela de portaria não é afetada, um evento que já
+  começou é exatamente o que um porteiro precisa achar lá (ADR 0025).
