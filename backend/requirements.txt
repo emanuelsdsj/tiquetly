@@ -17,3 +17,6 @@ email-validator==2.2.0
 # directly now that catalog providers also use it to call the Ticketmaster
 # and TMDb APIs.
 httpx==0.27.2
+# Only used through DATABASE_URL when it points at Postgres (docker-compose
+# and production), never touched in the default SQLite dev setup.
+psycopg2-binary==2.9.9

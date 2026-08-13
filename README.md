@@ -86,6 +86,32 @@ npm install
 npm run dev
 ```
 
+### Com Docker Compose
+
+Alternativa que não depende do devcontainer nem de instalar Python/Node
+na máquina: sobe backend, frontend e um Postgres real (não o SQLite do
+dev local, ver [Decisões de design](#decisões-de-design)) em três
+containers.
+
+```
+cp .env.example .env   # preencher as chaves de API e trocar os segredos
+docker compose up --build
+```
+
+Frontend em http://localhost:5173, backend em http://localhost:8000. Não
+sobe com dados de teste sozinho; rodar o seed manualmente depois que os
+três serviços estiverem de pé, se quiser:
+
+```
+docker compose exec backend python -m app.seed
+```
+
+> Este caminho não pôde ser testado com um `docker compose up` real
+> durante o desenvolvimento: o devcontainer usado para construir o
+> projeto não tem Docker disponível dentro dele. Os arquivos foram
+> revisados à mão e o `docker-compose.yml` validado como YAML, mas não
+> executados de ponta a ponta. Ver [Estado atual](#estado-atual).
+
 ## Variáveis de ambiente
 
 Backend (`backend/.env`, ver `backend/.env.example`):
@@ -177,22 +203,29 @@ O que já funciona de ponta a ponta:
   digitação manual, os quatro retornos (válido, inválido, já utilizado,
   evento errado).
 - Script de seed com os usuários e eventos de teste.
+- `docker-compose.yml` (stretch): backend, frontend e Postgres em três
+  containers, ver [Com Docker Compose](#com-docker-compose).
 
 O que ainda falta, pela ordem prevista:
 
-- Testes automatizados adicionais focados nas regras críticas restantes,
-  se sobrar algum gap depois de uma revisão final.
-- `docker-compose.yml` (stretch).
 - Deploy.
 
-Nenhum bug conhecido nas partes já implementadas. Um limite conhecido: o
-evento de filme criado pelo seed só aparece no dropdown "hoje" da tela de
-portaria no dia em que o seed foi rodado (a data é fixada em meio-dia UTC
-no momento do seed, não recalculada depois), então rodar o seed e testar
-a portaria em dias diferentes exige rodar o seed de novo (idempotente
-para usuários e eventos já existentes, mas não reagenda a data de um
-evento que já existe). Esta seção será revisada por completo antes da
-entrega final, como o edital pede.
+Nenhum bug conhecido nas partes já implementadas. Dois limites conhecidos:
+
+- O evento de filme criado pelo seed só aparece no dropdown "hoje" da tela de
+  portaria no dia em que o seed foi rodado (a data é fixada em meio-dia UTC
+  no momento do seed, não recalculada depois), então rodar o seed e testar
+  a portaria em dias diferentes exige rodar o seed de novo (idempotente
+  para usuários e eventos já existentes, mas não reagenda a data de um
+  evento que já existe).
+- O `docker-compose.yml` não foi validado com um `docker compose up` real:
+  o ambiente usado para desenvolver o projeto não tem Docker disponível
+  dentro dele (sem a feature de Docker-in-Docker no devcontainer). Os
+  arquivos foram revisados à mão e o YAML parseado com sucesso, mas não
+  há uma execução de ponta a ponta confirmando que a stack sobe limpa.
+
+Esta seção será revisada por completo antes da entrega final, como o
+edital pede.
 
 ## Decisões de design
 
@@ -217,3 +250,7 @@ descartadas fica no controle de versão do projeto.
 - Pagamento simulado por formulário de cartão fake com números de teste,
   em vez de um botão único de sucesso, para representar de verdade os
   dois caminhos que o edital pede (aprovação e recusa).
+- `docker-compose.yml` sobe o backend contra Postgres, não contra o
+  SQLite do dev local, para exercitar o mesmo motor de banco que a
+  produção usa (mesma escolha da ADR 0002), em vez de só repetir o que o
+  setup local já mostra.
