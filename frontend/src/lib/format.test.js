@@ -6,15 +6,16 @@ import { formatEventDate, formatPrice } from './format'
 process.env.TZ = 'UTC'
 
 // formatPrice inserts a non-breaking space (U+00A0, not a regular
-// space) between "R$" and the number, the same in both locales (see
-// the comment on formatPrice itself: en's own Intl currency
-// formatting renders no space at all, which used to make the price
-// visibly jump on locale toggle).
+// space) between "R$" and the number, and always formats the number
+// the Brazilian way (comma decimal, period thousands), regardless of
+// the `locale` argument: a BRL price is not UI copy, it should not
+// read differently depending on which language the interface happens
+// to be in (see the comment on formatPrice itself).
 const NBSP = ' '
 
 describe('formatPrice', () => {
-  it('always renders BRL currency regardless of locale, with the same spacing', () => {
-    expect(formatPrice(32, 'en')).toBe(`R$${NBSP}32.00`)
+  it('always renders BRL currency in Brazilian number format, regardless of locale', () => {
+    expect(formatPrice(32, 'en')).toBe(`R$${NBSP}32,00`)
     expect(formatPrice(32, 'pt-BR')).toBe(`R$${NBSP}32,00`)
   })
 
@@ -23,8 +24,8 @@ describe('formatPrice', () => {
   })
 
   it('formats zero and large values', () => {
-    expect(formatPrice(0, 'en')).toBe(`R$${NBSP}0.00`)
-    expect(formatPrice(1234.5, 'en')).toBe(`R$${NBSP}1,234.50`)
+    expect(formatPrice(0, 'en')).toBe(`R$${NBSP}0,00`)
+    expect(formatPrice(1234.5, 'en')).toBe(`R$${NBSP}1.234,50`)
     expect(formatPrice(1234.5, 'pt-BR')).toBe(`R$${NBSP}1.234,50`)
   })
 })
