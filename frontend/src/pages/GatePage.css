@@ -2,7 +2,7 @@
    note), plain raised surfaces like the auth forms. */
 
 .gate-page {
-  max-width: 900px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
@@ -54,6 +54,10 @@
 .gate-page__result-column {
   flex: 1 1 340px;
   min-width: 300px;
+  /* Same content-column ceiling used on the other management pages
+     (event detail, create-event): stops the scanner/result panels from
+     stretching oddly wide now that the page container is full width. */
+  max-width: 520px;
 }
 
 .gate-page__paused {
@@ -87,6 +91,15 @@
   color: var(--ink-text);
   font-family: var(--font-body);
   font-size: 0.95rem;
+}
+
+.gate-page__field-loading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--ink-raised);
+  border-radius: 6px;
+  padding: 10px 12px;
 }
 
 .gate-page__mode {

@@ -2,7 +2,7 @@
    catalog picker and a form, not a ticket. */
 
 .create-event-page {
-  max-width: 900px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
@@ -204,6 +204,11 @@
 
 .create-event-page__layout .create-event-page__details {
   flex: 1 1 420px;
+  /* Capped for the same reason as the event detail page's info column:
+     a form of single-line fields has no natural stopping point and would
+     stretch the whole card oddly wide now that the page container
+     matches the other pages' full 1320px width. */
+  max-width: 520px;
 }
 
 .create-event-page__details {
