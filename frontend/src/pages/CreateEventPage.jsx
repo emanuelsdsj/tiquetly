@@ -196,15 +196,17 @@ export function CreateEventPage() {
             />
             {category === 'show' && (
               <>
-                <input
-                  type="text"
-                  list="create-event-city-options"
-                  className="create-event-page__search-filter"
-                  placeholder={t('createEvent.cityPlaceholder')}
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  aria-label={t('createEvent.cityAriaLabel')}
-                />
+                <span className="create-event-page__city-field">
+                  <input
+                    type="text"
+                    list="create-event-city-options"
+                    className="create-event-page__search-filter"
+                    placeholder={t('createEvent.cityPlaceholder')}
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    aria-label={t('createEvent.cityAriaLabel')}
+                  />
+                </span>
                 <datalist id="create-event-city-options">
                   {cityOptions.map((option) => (
                     <option key={option} value={option} />

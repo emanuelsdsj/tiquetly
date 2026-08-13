@@ -94,13 +94,8 @@
   flex: 0 0 140px;
 }
 
-/* Native affordances (datalist arrow on the city field, number spinner
-   on the year field) read as leftover browser chrome against the rest
-   of the app's own controls, so both are hidden here. */
-.create-event-page__search-filter::-webkit-calendar-picker-indicator {
-  display: none;
-}
-
+/* Number spinner on the year field reads as leftover browser chrome
+   against the rest of the app's own controls, so it's hidden here. */
 .create-event-page__search-filter::-webkit-outer-spin-button,
 .create-event-page__search-filter::-webkit-inner-spin-button {
   -webkit-appearance: none;
@@ -109,6 +104,24 @@
 
 .create-event-page__search-filter[type='number'] {
   -moz-appearance: textfield;
+}
+
+/* The city field's native datalist dropdown arrow isn't reliably hidden
+   by ::-webkit-calendar-picker-indicator across Chrome versions, so it's
+   clipped instead: the input is drawn wider than its visible box and the
+   overflow, where the arrow renders, is cut off. The wrapper takes over
+   the border so the clipped edge still looks like a normal field. */
+.create-event-page__city-field {
+  flex: 0 0 140px;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--ink-muted);
+}
+
+.create-event-page__city-field .create-event-page__search-filter {
+  width: calc(100% + 28px);
+  border: none;
+  border-radius: 0;
 }
 
 .create-event-page__results {
