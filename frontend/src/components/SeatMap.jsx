@@ -10,9 +10,14 @@ function groupByRow(seats) {
   return [...map.entries()]
 }
 
-export function SeatMap({ seats, selected, onToggle }) {
+export function SeatMap({ seats, selected, onToggle, category = 'movie' }) {
   const { t } = useLocale()
   const rows = groupByRow(seats)
+  // A show with assigned seating (ADR 0003 addendum) faces a stage, not a
+  // movie screen; the curved indicator switches label and accent color
+  // (marquee-gold, same as every other show-category element) instead of
+  // always reading "Screen" in the movie-only teal.
+  const isStage = category !== 'movie'
 
   function renderSeat(seat) {
     const isSelected = selected.includes(seat.id)
@@ -41,9 +46,9 @@ export function SeatMap({ seats, selected, onToggle }) {
   return (
     <div className="seat-map">
       <div className="seat-map__screen-wrap" aria-hidden="true">
-        <div className="seat-map__screen" />
+        <div className={`seat-map__screen ${isStage ? 'seat-map__screen--stage' : ''}`} />
       </div>
-      <p className="seat-map__screen-label">{t('seatMap.screen')}</p>
+      <p className="seat-map__screen-label">{t(isStage ? 'seatMap.stage' : 'seatMap.screen')}</p>
 
       <div className="seat-map__grid">
         {rows.map(([row, rowSeats]) => {

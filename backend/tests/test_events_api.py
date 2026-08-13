@@ -74,9 +74,27 @@ def test_create_event_generates_seats_for_a_seatmap_movie(client, session):
     assert {seat.row for seat in seats} == {"A", "B"}
 
 
-def test_create_event_rejects_a_mismatched_reservation_mode(client, session):
+def test_create_event_generates_seats_for_a_show_with_assigned_seating(client, session):
+    # ADR 0003 addendum: a show can now be seatmap too, when the picked
+    # Ticketmaster result reports assigned seating. Unlike the movie case,
+    # nothing here comes from CatalogEvent.has_seatmap directly (that
+    # field only steers the frontend's choice of reservation_mode); the
+    # backend just has to accept show + seatmap once the frontend sends it.
     token = _token_for(session, UserRole.organizer)
-    payload = {**SHOW_PAYLOAD, "reservation_mode": "seatmap"}
+    payload = {**SHOW_PAYLOAD, "reservation_mode": "seatmap", "capacity": 15}
+
+    response = client.post("/events", json=payload, headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 201
+    event_id = response.json()["id"]
+    seats = session.exec(select(Seat).where(Seat.event_id == event_id)).all()
+    assert len(seats) == 15
+    assert {seat.row for seat in seats} == {"A", "B"}
+
+
+def test_create_event_rejects_a_movie_with_general_reservation_mode(client, session):
+    token = _token_for(session, UserRole.organizer)
+    payload = {**MOVIE_PAYLOAD, "reservation_mode": "general"}
 
     response = client.post("/events", json=payload, headers={"Authorization": f"Bearer {token}"})
 

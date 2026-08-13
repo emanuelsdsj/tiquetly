@@ -9,10 +9,7 @@ import { translateApiError } from '../lib/apiErrors'
 import { formatEventDate, toDatetimeLocalValue } from '../lib/format'
 import './CreateEventPage.css'
 
-const CATEGORIES = [
-  { value: 'show', reservationMode: 'general' },
-  { value: 'movie', reservationMode: 'seatmap' },
-]
+const CATEGORIES = ['show', 'movie']
 
 function emptyDetailsForm(catalogEvent) {
   return {
@@ -82,7 +79,15 @@ export function CreateEventPage() {
     setForm(null)
   }
 
-  const reservationMode = CATEGORIES.find((c) => c.value === category).reservationMode
+  // Movies always sell by seat. Shows sell by quantity unless the picked
+  // Ticketmaster result itself reports assigned seating (ADR 0003
+  // addendum): the organizer never toggles this by hand, it follows
+  // straight from what the catalog says about the specific event.
+  const reservationMode = selected
+    ? selected.category === 'movie' || selected.has_seatmap
+      ? 'seatmap'
+      : 'general'
+    : null
 
   async function handleSubmit(formEvent) {
     formEvent.preventDefault()
@@ -152,13 +157,13 @@ export function CreateEventPage() {
           >
             {CATEGORIES.map((option) => (
               <button
-                key={option.value}
+                key={option}
                 type="button"
-                className={`category-chip ${category === option.value ? 'category-chip--active' : ''}`}
-                onClick={() => selectCategory(option.value)}
-                aria-pressed={category === option.value}
+                className={`category-chip ${category === option ? 'category-chip--active' : ''}`}
+                onClick={() => selectCategory(option)}
+                aria-pressed={category === option}
               >
-                {t(`createEvent.category.${option.value}`)}
+                {t(`createEvent.category.${option}`)}
               </button>
             ))}
           </div>

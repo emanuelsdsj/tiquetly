@@ -22,6 +22,17 @@ class UserCreate(BaseModel):
     name: str
 
 
+class StaffAccountCreate(BaseModel):
+    # Admin-only account creation (ADR 0003 addendum's sibling decision,
+    # see ADR 0023): deliberately narrower than UserCreate's role-implicit
+    # "always customer" shape. Only organizer and gatekeeper are offered;
+    # minting another admin from this screen was ruled out, see the ADR.
+    email: EmailStr
+    password: str
+    name: str
+    role: Literal[UserRole.organizer, UserRole.gatekeeper]
+
+
 class UserRead(BaseModel):
     id: int
     email: str
@@ -51,11 +62,15 @@ class EventCreate(BaseModel):
 
     @model_validator(mode="after")
     def _reservation_mode_matches_category(self) -> "EventCreate":
-        # Decided in ADR 0003: movies sell by seat, shows sell by quantity.
-        # Enforced here so the two never drift out of sync silently.
-        expected = ReservationMode.seatmap if self.category == EventCategory.movie else ReservationMode.general
-        if self.reservation_mode != expected:
-            raise ValueError(f"category {self.category.value} requires reservation_mode {expected.value}")
+        # Decided in ADR 0003, relaxed in its addendum: movies always sell
+        # by seat. Shows sold by quantity by default, but the frontend
+        # switches to seatmap on its own when the picked Ticketmaster
+        # result reports assigned seating (CatalogEvent.has_seatmap), so
+        # only the movie side of the original rule is still enforced here.
+        if self.category == EventCategory.movie and self.reservation_mode != ReservationMode.seatmap:
+            raise ValueError(
+                f"category {self.category.value} requires reservation_mode {ReservationMode.seatmap.value}"
+            )
         return self
 
 

@@ -136,6 +136,9 @@ export function EventDetailPage() {
     <main className="event-detail-page">
       <div className="event-detail-page__layout">
         <div className="event-detail-page__info">
+          {event.image && (
+            <img className="event-detail-page__image" src={event.image} alt="" aria-hidden="true" />
+          )}
           <span className={`event-detail-page__tag event-detail-page__tag--${event.category}`}>
             {t(`common.category.${event.category}`)}
           </span>
@@ -278,7 +281,12 @@ export function EventDetailPage() {
                 <p className="event-detail-page__state">{t('eventDetail.allSeatsTaken')}</p>
               ) : (
                 <>
-                  <SeatMap seats={seats} selected={selectedSeatIds} onToggle={toggleSeat} />
+                  <SeatMap
+                    seats={seats}
+                    selected={selectedSeatIds}
+                    onToggle={toggleSeat}
+                    category={event.category}
+                  />
                   {!user ? (
                     <p className="event-detail-page__state">
                       <Link to="/entrar">{t('common.signInLinkText')}</Link>{' '}

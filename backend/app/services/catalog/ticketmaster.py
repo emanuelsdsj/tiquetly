@@ -68,6 +68,8 @@ class TicketmasterProvider:
         date_time = event.get("dates", {}).get("start", {}).get("dateTime")
         date = datetime.fromisoformat(date_time.replace("Z", "+00:00")) if date_time else None
 
+        has_seatmap = bool(event.get("seatmap", {}).get("staticUrl"))
+
         return CatalogEvent(
             source=EventSource.ticketmaster,
             external_id=event["id"],
@@ -78,4 +80,5 @@ class TicketmasterProvider:
             date=date,
             venue=venue,
             city=city,
+            has_seatmap=has_seatmap,
         )

@@ -26,6 +26,15 @@ class CatalogEvent(BaseModel):
     # only: not part of EventCreate, the organizer's own "Venue" field on
     # the create-event form is what actually gets stored.
     city: str | None = None
+    # True when Ticketmaster reports assigned seating for the event (its
+    # `seatmap.staticUrl` field is present), False for general admission
+    # shows and always False from TMDb (movies are always seatmap through
+    # the existing category rule regardless of this field, see ADR 0003).
+    # Drives whether a show is created in seatmap or general mode (ADR
+    # 0003 addendum): Ticketmaster does not expose the real seat-by-seat
+    # layout at this API tier, only this yes/no signal, so a detected
+    # seatmap show still gets the same synthetic per-row grid movies do.
+    has_seatmap: bool = False
 
 
 class CatalogProvider(Protocol):

@@ -30,6 +30,17 @@
   box-shadow: 0 6px 20px 2px rgba(43, 179, 163, 0.35);
 }
 
+/* Same shape, marquee-gold (--marquee-gold, #F5A623) instead of the
+   movie-only screen-teal, for a show with assigned seating. */
+.seat-map__screen--stage {
+  background: radial-gradient(
+    ellipse at center top,
+    rgba(245, 166, 35, 0.55),
+    rgba(245, 166, 35, 0) 72%
+  );
+  box-shadow: 0 6px 20px 2px rgba(245, 166, 35, 0.35);
+}
+
 .seat-map__screen-label {
   margin: 2px 0 20px;
   font-family: var(--font-mono);

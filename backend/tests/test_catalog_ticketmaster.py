@@ -44,6 +44,20 @@ def test_search_normalizes_a_ticketmaster_event():
     assert event.city == "Test City"
     assert event.category == "show"
     assert event.date is not None
+    assert event.has_seatmap is False
+
+
+def test_search_detects_assigned_seating_from_the_seatmap_field():
+    event_with_seatmap = {**RAW_EVENT, "seatmap": {"staticUrl": "https://example.com/seatmap.png"}}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        return httpx.Response(200, json={"_embedded": {"events": [event_with_seatmap]}})
+
+    provider = _provider(handler)
+
+    events = provider.search(keyword="test")
+
+    assert events[0].has_seatmap is True
 
 
 def test_search_forwards_the_city_filter():
