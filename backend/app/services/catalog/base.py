@@ -21,7 +21,19 @@ class CatalogEvent(BaseModel):
     category: EventCategory
     date: datetime | None = None
     venue: str | None = None
+    # Populated by Ticketmaster (from the venue's own city), always None
+    # from TMDb (a movie has no city of its own). Search-time metadata
+    # only: not part of EventCreate, the organizer's own "Venue" field on
+    # the create-event form is what actually gets stored.
+    city: str | None = None
 
 
 class CatalogProvider(Protocol):
-    def search(self, keyword: str | None = None) -> list[CatalogEvent]: ...
+    # `city` and `year` are accepted by both providers for a uniform call
+    # signature (see the route in api/routes/catalog.py), but each only
+    # honors the one filter its own source actually supports: city for
+    # Ticketmaster (shows), year for TMDb (movies, and only alongside a
+    # keyword, see TmdbProvider.search).
+    def search(
+        self, keyword: str | None = None, *, city: str | None = None, year: int | None = None
+    ) -> list[CatalogEvent]: ...

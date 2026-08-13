@@ -2,7 +2,7 @@
    catalog picker and a form, not a ticket. */
 
 .create-event-page {
-  max-width: 720px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 48px 24px 80px;
 }
@@ -41,6 +41,7 @@
 .create-event-page__state {
   color: var(--ink-muted);
   padding: 24px 0;
+  text-align: center;
 }
 
 .create-event-page__state--error {
@@ -73,6 +74,7 @@
 
 .create-event-page__search {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 8px;
 }
@@ -88,22 +90,8 @@
   font-size: 0.95rem;
 }
 
-.create-event-page__search button {
-  background: var(--marquee-gold);
-  color: #201a10;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 18px;
-  font-family: var(--font-body);
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.create-event-page__search button:disabled {
-  opacity: 0.6;
-  cursor: default;
+.create-event-page__search-filter {
+  flex: 0 0 140px;
 }
 
 .create-event-page__results {

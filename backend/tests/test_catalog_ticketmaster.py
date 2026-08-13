@@ -11,7 +11,7 @@ RAW_EVENT = {
     "info": "Doors open at 8pm",
     "images": [{"url": "https://example.com/image.jpg"}],
     "dates": {"start": {"dateTime": "2026-09-01T23:00:00Z"}},
-    "_embedded": {"venues": [{"name": "Test Venue"}]},
+    "_embedded": {"venues": [{"name": "Test Venue", "city": {"name": "Test City"}}]},
 }
 
 
@@ -41,8 +41,29 @@ def test_search_normalizes_a_ticketmaster_event():
     assert event.title == "Test Show"
     assert event.image == "https://example.com/image.jpg"
     assert event.venue == "Test Venue"
+    assert event.city == "Test City"
     assert event.category == "show"
     assert event.date is not None
+
+
+def test_search_forwards_the_city_filter():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.params["city"] == "Sao Paulo"
+        return httpx.Response(200, json={"_embedded": {"events": [RAW_EVENT]}})
+
+    provider = _provider(handler)
+
+    provider.search(keyword="test", city="Sao Paulo")
+
+
+def test_search_ignores_the_year_filter():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert "year" not in request.url.params
+        return httpx.Response(200, json={"_embedded": {"events": [RAW_EVENT]}})
+
+    provider = _provider(handler)
+
+    provider.search(keyword="test", year=2099)
 
 
 def test_search_returns_an_empty_list_when_ticketmaster_has_no_matches():

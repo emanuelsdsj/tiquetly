@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { searchCatalog } from '../api/catalog'
 import { createEvent } from '../api/events'
+import { Spinner } from '../components/Spinner'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
@@ -29,6 +30,8 @@ export function CreateEventPage() {
 
   const [category, setCategory] = useState('show')
   const [keyword, setKeyword] = useState('')
+  const [city, setCity] = useState('')
+  const [year, setYear] = useState('')
   const [results, setResults] = useState(null)
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState(null)
@@ -40,23 +43,33 @@ export function CreateEventPage() {
 
   function selectCategory(value) {
     setCategory(value)
-    setResults(null)
+    // A leftover keyword from the other category rarely means anything
+    // there (an artist name is not a sensible movie search), so it is
+    // cleared on switch rather than silently carried over and searched.
+    setKeyword('')
+    setCity('')
+    setYear('')
     setSearchError(null)
   }
 
-  async function handleSearch(formEvent) {
-    formEvent.preventDefault()
-    setSearching(true)
-    setSearchError(null)
-    try {
-      const catalogEvents = await searchCatalog(category, keyword || undefined, token)
-      setResults(catalogEvents)
-    } catch (err) {
-      setSearchError(translateApiError(err, t))
-    } finally {
-      setSearching(false)
-    }
-  }
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setSearching(true)
+      setSearchError(null)
+      searchCatalog(category, keyword || undefined, token, {
+        city: category === 'show' ? city || undefined : undefined,
+        year: category === 'movie' ? year || undefined : undefined,
+      })
+        .then(setResults)
+        .catch((err) => setSearchError(translateApiError(err, t)))
+        .finally(() => setSearching(false))
+      // Empty keyword still searches (the catalog's own default listing,
+      // e.g. TMDb's "now playing"), so there is always something to pick
+      // from without the organizer having to type anything first.
+    }, 300)
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [category, keyword, city, year])
 
   function selectCatalogEvent(catalogEvent) {
     setSelected(catalogEvent)
@@ -70,6 +83,12 @@ export function CreateEventPage() {
   }
 
   const reservationMode = CATEGORIES.find((c) => c.value === category).reservationMode
+
+  // Ticketmaster has no "list every city" endpoint on the plan this
+  // project uses; the cities on offer are instead whatever real ones show
+  // up in the current (possibly city-unfiltered) result set, so picking
+  // one never requires guessing the exact spelling.
+  const cityOptions = results ? [...new Set(results.map((r) => r.city).filter(Boolean))] : []
 
   async function handleSubmit(formEvent) {
     formEvent.preventDefault()
@@ -150,7 +169,7 @@ export function CreateEventPage() {
             ))}
           </div>
 
-          <form className="create-event-page__search" onSubmit={handleSearch}>
+          <div className="create-event-page__search">
             <input
               type="search"
               placeholder={
@@ -162,14 +181,47 @@ export function CreateEventPage() {
               onChange={(e) => setKeyword(e.target.value)}
               aria-label={t('createEvent.searchAriaLabel')}
             />
-            <button type="submit" disabled={searching}>
-              {searching ? t('createEvent.searching') : t('createEvent.search')}
-            </button>
-          </form>
+            {category === 'show' && (
+              <>
+                <input
+                  type="text"
+                  list="create-event-city-options"
+                  className="create-event-page__search-filter"
+                  placeholder={t('createEvent.cityPlaceholder')}
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  aria-label={t('createEvent.cityAriaLabel')}
+                />
+                <datalist id="create-event-city-options">
+                  {cityOptions.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
+              </>
+            )}
+            {category === 'movie' && keyword.trim() !== '' && (
+              <input
+                type="number"
+                inputMode="numeric"
+                className="create-event-page__search-filter"
+                placeholder={t('createEvent.yearPlaceholder')}
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                aria-label={t('createEvent.yearAriaLabel')}
+              />
+            )}
+          </div>
 
           {searchError && (
             <p className="create-event-page__state create-event-page__state--error">
               {searchError}
+            </p>
+          )}
+
+          {!searchError && searching && results === null && (
+            <p className="create-event-page__state">
+              <Spinner />
+              {t('createEvent.searching')}
             </p>
           )}
 
@@ -228,7 +280,13 @@ export function CreateEventPage() {
             <div className="catalog-result__info">
               <h3 className="catalog-result__title">{selected.title}</h3>
               <p className="catalog-result__meta">
-                {t(`createEvent.category.${selected.category}`)}
+                {[
+                  t(`createEvent.category.${selected.category}`),
+                  selected.venue,
+                  selected.date ? formatEventDate(selected.date, locale) : null,
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
               </p>
             </div>
             <button type="button" className="catalog-result__select" onClick={backToSearch}>

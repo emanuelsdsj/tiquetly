@@ -22,7 +22,14 @@ class TicketmasterProvider:
     def __init__(self, client: httpx.Client | None = None):
         self._client = client or httpx.Client(timeout=10.0)
 
-    def search(self, keyword: str | None = None) -> list[CatalogEvent]:
+    def search(
+        self, keyword: str | None = None, *, city: str | None = None, year: int | None = None
+    ) -> list[CatalogEvent]:
+        # `year` is part of the shared CatalogProvider signature but has no
+        # equivalent here: Ticketmaster's own date filtering is a
+        # start/end datetime range, not a bare year, and this project has
+        # no UI need for it yet, so it is silently ignored rather than
+        # half-implemented.
         if not settings.ticketmaster_api_key:
             raise CatalogProviderError(
                 "CATALOG_API_KEY_MISSING", "Ticketmaster API key is not configured", provider="Ticketmaster"
@@ -35,6 +42,8 @@ class TicketmasterProvider:
         }
         if keyword:
             params["keyword"] = keyword
+        if city:
+            params["city"] = city
 
         try:
             response = self._client.get(TICKETMASTER_EVENTS_URL, params=params)
@@ -54,6 +63,7 @@ class TicketmasterProvider:
 
         venues = event.get("_embedded", {}).get("venues") or []
         venue = venues[0]["name"] if venues else None
+        city = venues[0].get("city", {}).get("name") if venues else None
 
         date_time = event.get("dates", {}).get("start", {}).get("dateTime")
         date = datetime.fromisoformat(date_time.replace("Z", "+00:00")) if date_time else None
@@ -67,4 +77,5 @@ class TicketmasterProvider:
             category=EventCategory.show,
             date=date,
             venue=venue,
+            city=city,
         )

@@ -24,13 +24,23 @@ class TmdbProvider:
     def __init__(self, client: httpx.Client | None = None):
         self._client = client or httpx.Client(timeout=10.0)
 
-    def search(self, keyword: str | None = None) -> list[CatalogEvent]:
+    def search(
+        self, keyword: str | None = None, *, city: str | None = None, year: int | None = None
+    ) -> list[CatalogEvent]:
+        # `city` is part of the shared CatalogProvider signature but has no
+        # equivalent here: TMDb has no venue/location concept, so it is
+        # silently ignored.
         if not settings.tmdb_api_key:
             raise CatalogProviderError("CATALOG_API_KEY_MISSING", "TMDb API key is not configured", provider="TMDb")
 
         if keyword:
             url, params = TMDB_SEARCH_URL, {"api_key": settings.tmdb_api_key, "query": keyword}
+            if year:
+                params["primary_release_year"] = year
         else:
+            # now_playing has no year/date-range parameter of its own
+            # (it's always "what's in theaters right now"), so `year` only
+            # has an effect once there is a keyword to search by.
             url, params = TMDB_NOW_PLAYING_URL, {"api_key": settings.tmdb_api_key}
 
         try:

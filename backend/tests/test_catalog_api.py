@@ -11,8 +11,12 @@ FAKE_MOVIE = CatalogEvent(source="tmdb", external_id="42", title="Test Movie", c
 class _FakeProvider:
     def __init__(self, events: list[CatalogEvent]):
         self._events = events
+        self.last_call = None
 
-    def search(self, keyword: str | None = None) -> list[CatalogEvent]:
+    def search(
+        self, keyword: str | None = None, *, city: str | None = None, year: int | None = None
+    ) -> list[CatalogEvent]:
+        self.last_call = {"keyword": keyword, "city": city, "year": year}
         return self._events
 
 
@@ -66,3 +70,25 @@ def test_search_catalog_uses_tmdb_for_movies(client, session):
     body = response.json()
     assert len(body) == 1
     assert body[0]["source"] == "tmdb"
+
+
+def test_search_catalog_forwards_city_and_year_to_the_right_provider(client, session):
+    token = _token_for(session, UserRole.organizer)
+    ticketmaster = _FakeProvider([FAKE_SHOW])
+    tmdb = _FakeProvider([FAKE_MOVIE])
+    app.dependency_overrides[get_ticketmaster_provider] = lambda: ticketmaster
+    app.dependency_overrides[get_tmdb_provider] = lambda: tmdb
+
+    client.get(
+        "/catalog/search?category=show&keyword=test&city=Sao+Paulo&year=2099",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    client.get(
+        "/catalog/search?category=movie&keyword=test&city=Sao+Paulo&year=2099",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    app.dependency_overrides.pop(get_ticketmaster_provider, None)
+    app.dependency_overrides.pop(get_tmdb_provider, None)
+    assert ticketmaster.last_call == {"keyword": "test", "city": "Sao Paulo", "year": 2099}
+    assert tmdb.last_call == {"keyword": "test", "city": "Sao Paulo", "year": 2099}

@@ -13,9 +13,11 @@ router = APIRouter(prefix="/catalog", tags=["catalog"])
 def search_catalog(
     category: EventCategory,
     keyword: str | None = None,
+    city: str | None = None,
+    year: int | None = None,
     ticketmaster: TicketmasterProvider = Depends(get_ticketmaster_provider),
     tmdb: TmdbProvider = Depends(get_tmdb_provider),
     current_user: User = Depends(require_organizer),
 ) -> list[CatalogEvent]:
     provider: CatalogProvider = ticketmaster if category == EventCategory.show else tmdb
-    return provider.search(keyword)
+    return provider.search(keyword, city=city, year=year)

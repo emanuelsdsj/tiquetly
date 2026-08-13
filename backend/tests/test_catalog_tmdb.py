@@ -53,6 +53,31 @@ def test_search_with_no_keyword_hits_now_playing():
     assert len(events) == 1
 
 
+def test_search_forwards_the_year_filter_alongside_a_keyword():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.params["primary_release_year"] == "2099"
+        return httpx.Response(200, json={"results": [RAW_MOVIE]})
+
+    _provider(handler).search(keyword="test", year=2099)
+
+
+def test_search_ignores_the_year_filter_without_a_keyword():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/3/movie/now_playing"
+        assert "primary_release_year" not in request.url.params
+        return httpx.Response(200, json={"results": [RAW_MOVIE]})
+
+    _provider(handler).search(year=2099)
+
+
+def test_search_ignores_the_city_filter():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert "city" not in request.url.params
+        return httpx.Response(200, json={"results": [RAW_MOVIE]})
+
+    _provider(handler).search(keyword="test", city="Sao Paulo")
+
+
 def test_search_raises_when_the_api_key_is_not_configured(monkeypatch):
     monkeypatch.setattr(settings, "tmdb_api_key", "")
     provider = _provider(lambda request: httpx.Response(200, json={}))
