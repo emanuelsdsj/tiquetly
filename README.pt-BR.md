@@ -7,10 +7,6 @@ paga de forma simulada, e a portaria valida o ingresso na entrada.
 
 🇬🇧 [Read in English](README.md)
 
-> Este README acompanha o desenvolvimento do projeto e ainda não descreve
-> o produto final. A seção [Estado atual](#estado-atual) diz exatamente o
-> que já funciona e o que falta.
-
 ## Sumário
 
 - [Stack](#stack)
@@ -19,8 +15,6 @@ paga de forma simulada, e a portaria valida o ingresso na entrada.
 - [Variáveis de ambiente](#variáveis-de-ambiente)
 - [Dados de teste (seed)](#dados-de-teste-seed)
 - [Percorrendo o fluxo completo](#percorrendo-o-fluxo-completo)
-- [Estado atual](#estado-atual)
-- [Decisões de design](#decisões-de-design)
 
 ## Stack
 
@@ -99,9 +93,8 @@ flowchart TB
   `UPDATE` guardado acima é a garantia de verdade, uma tela que atualiza
   ao vivo seria só um refinamento de UX em cima dela, não um substituto.
   O raciocínio completo de cada escolha desta página, incluindo as
-  descartadas pelo caminho, fica registrado como ADRs no controle de
-  versão (ainda não incluído neste repositório público, ver
-  [Decisões de design](#decisões-de-design) abaixo pro resumo corrente).
+  descartadas pelo caminho, fica num conjunto separado de notas de
+  engenharia, fora deste repositório.
 - Topologia de deploy: build estático do frontend na Vercel
   ([tiquetly.vercel.app](https://tiquetly.vercel.app)), backend mais uma
   instância gerenciada de Postgres na Railway, um serviço cada. O
@@ -168,9 +161,9 @@ npm run dev
 ### Com Docker Compose
 
 Alternativa que não depende de instalar Python/Node na máquina: sobe
-backend, frontend e um Postgres real (não o SQLite do dev local, ver
-[Decisões de design](#decisões-de-design)) em três containers. Funciona
-tanto fora do devcontainer (qualquer máquina com Docker e Docker Compose
+backend, frontend e um Postgres real (não o SQLite do dev local) em
+três containers. Funciona tanto fora do devcontainer (qualquer máquina
+com Docker e Docker Compose
 instalados) quanto de dentro dele, já que o devcontainer tem a feature
 `docker-in-docker` ativada.
 
@@ -269,109 +262,7 @@ Depois do seed, em http://localhost:5173:
    escolher o evento do dia, validar por câmera ou digitando o código.
    Um ingresso do evento de filme semeado já sai "já utilizado" para
    testar esse retorno sem precisar validar duas vezes na mão.
-4. **Admin** (`admin@tiquetly.com`, opcional, ver ADR 0023): entrar, ir
-   em "Admin", criar uma conta nova de organizador ou portaria e já
-   logar com ela na hora, sem precisar de script de seed nem acesso ao
-   banco.
+4. **Admin** (`admin@tiquetly.com`, opcional): entrar, ir em "Admin",
+   criar uma conta nova de organizador ou portaria e já logar com ela
+   na hora, sem precisar de script de seed nem acesso ao banco.
 
-## Estado atual
-
-O que já funciona de ponta a ponta:
-
-- Autenticação com os três papéis que o desafio pede (organizador,
-  cliente, portaria), registro de cliente, login, JWT. Um quarto papel
-  opcional (admin) cria contas de organizador e portaria pela própria
-  tela em vez de só pelo script de seed, ver ADR 0023.
-- Integração com Ticketmaster Discovery e TMDb atrás de um adapter comum
-  de catálogo.
-- Organizador cria eventos a partir do catálogo pela própria tela,
-  edita os já publicados e despublica.
-- Cliente navega, busca e filtra eventos publicados.
-- Reserva por quantidade ou por mapa de assentos: filme é sempre mapa
-  de assentos, show usa quantidade por padrão mas troca para mapa de
-  assentos automaticamente quando a Ticketmaster reporta assento
-  marcado pro evento escolhido (ver o adendo da ADR 0003). As duas com
-  garantia de não vender o mesmo lugar duas vezes sob concorrência, e
-  as duas com opção de cancelar (antes ou depois de pagar) e devolver o
-  lugar ao estoque.
-- Pagamento simulado (aprovação e recusa) com cartão de teste, libera o
-  estoque de novo em caso de recusa ou cancelamento.
-- Ingresso com QR assinado (não forjável) e a área "Meus ingressos".
-- Compartilhamento de ingresso por link público, sem exigir login.
-- Tela de portaria: escolha do evento do dia, leitura por câmera ou
-  digitação manual, os quatro retornos (válido, inválido, já utilizado,
-  evento errado).
-- Script de seed com os usuários e eventos de teste.
-- `docker-compose.yml` (stretch): backend, frontend e um Postgres real
-  em três containers, confirmado de ponta a ponta (build, migrations,
-  seed, e o fluxo completo de busca/reserva/pagamento/ingresso dirigido
-  por um browser de verdade contra a stack em container), ver
-  [Com Docker Compose](#com-docker-compose).
-
-Demo no ar (Vercel + Railway, ver [Decisões de design](#decisões-de-design)):
-https://tiquetly.vercel.app/
-
-Nenhum bug conhecido nas partes já implementadas. Um limite conhecido:
-
-- O evento de filme criado pelo seed só aparece no dropdown "hoje" da
-  tela de portaria, e só continua visível na busca de navegação (ver
-  ADR 0025), no dia em que o seed foi rodado (a data é fixada um pouco
-  depois do momento do seed, não recalculada depois), então rodar o
-  seed e testar a portaria em dias diferentes exige rodar o seed de
-  novo (idempotente para usuários e eventos já existentes, mas não
-  reagenda a data de um evento que já existe).
-
-Esta seção será revisada por completo antes da entrega final, como o
-edital pede.
-
-## Decisões de design
-
-Registradas aqui em resumo, o histórico completo de alternativas
-descartadas fica no controle de versão do projeto.
-
-- Duas fontes de catálogo (Ticketmaster para shows, TMDb para filmes)
-  atrás de um adapter comum, para o resto do backend nunca precisar saber
-  qual das duas originou um evento.
-- Dois fluxos de reserva (quantidade e mapa de assentos), porque um show
-  de pista e uma sessão de cinema são produtos genuinamente diferentes,
-  forçar os dois no mesmo modelo distorceria um lado ou o outro.
-- Sem mapa de assentos em tempo real: a tela é otimista (mostra o assento
-  livre até alguém tentar reservar) e o servidor é a fonte da verdade no
-  momento da reserva, com erro claro se o assento sumiu enquanto o
-  cliente escolhia. O ganho de um canal em tempo real não paga a
-  complexidade extra para o tamanho deste projeto.
-- Identidade visual própria (paleta escura, tipografia Bebas Neue/IBM
-  Plex, cartões em forma de canhoto de ingresso), comparada lado a lado
-  com outras duas direções antes de escolhida, para fugir do visual
-  genérico padrão de ferramenta.
-- Pagamento simulado por formulário de cartão fake com números de teste,
-  em vez de um botão único de sucesso, para representar de verdade os
-  dois caminhos que o edital pede (aprovação e recusa).
-- `docker-compose.yml` sobe o backend contra Postgres, não contra o
-  SQLite do dev local, para exercitar o mesmo motor de banco que a
-  produção usa (mesma escolha da ADR 0002), em vez de só repetir o que o
-  setup local já mostra.
-- O próprio app tem uma troca de idioma real e dinâmica entre inglês e
-  português (inglês por padrão), baseada num dicionário feito à mão e
-  Context do React em vez de uma lib como `react-i18next`, no mesmo
-  espírito de evitar outras dependências no resto do projeto. Erros de
-  domínio do backend carregam um código estável e legível por máquina
-  pra o frontend também conseguir traduzi-los, não só o texto estático
-  da tela (ADR 0020). Isso é diferente da documentação bilíngue (este
-  README incluso), que é markdown estático e não tem esse toggle, veja
-  o link de idioma no topo deste arquivo.
-- Uma reserva `pending` que nunca é paga nem cancelada expira sozinha
-  depois de 10 minutos, devolvendo o lugar ou assento ao estoque.
-  Checado de forma preguiçosa em todo lugar que o app já lê ou escreve a
-  disponibilidade de um evento (reservar, pagar, recarregar a página),
-  não um job em background nem scheduler, no mesmo espírito da escolha
-  "sem canal em tempo real" acima (ADR 0024). A tela de compra mostra uma
-  contagem regressiva ao vivo até o mesmo prazo, só consultiva: o
-  backend aplica o prazo independente do que o relógio do cliente
-  mostra.
-- Um evento publicado com data já passada some sozinho da busca simples
-  de navegação (um filtro no momento da leitura, `status` continua
-  lendo `published`, nenhuma despublicação acontece sozinha), então um
-  cliente nunca cai em algo que não dá mais pra comparecer. A própria
-  busca "hoje" da tela de portaria não é afetada, um evento que já
-  começou é exatamente o que um porteiro precisa achar lá (ADR 0025).

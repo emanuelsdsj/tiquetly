@@ -8,10 +8,6 @@ the ticket at the door.
 
 🇧🇷 [Leia em português](README.pt-BR.md)
 
-> This README tracks the project as it's being built and does not
-> describe the final product yet. The [Current state](#current-state)
-> section says exactly what already works and what's missing.
-
 ## Contents
 
 - [Stack](#stack)
@@ -20,8 +16,6 @@ the ticket at the door.
 - [Environment variables](#environment-variables)
 - [Test data (seed)](#test-data-seed)
 - [Walking through the full flow](#walking-through-the-full-flow)
-- [Current state](#current-state)
-- [Design decisions](#design-decisions)
 
 ## Stack
 
@@ -97,9 +91,8 @@ flowchart TB
   above is the actual guarantee, a live-updating screen would only be a
   UX nicety on top of it, not a substitute for it. The full reasoning
   for every choice on this page, including the ones considered and
-  discarded, is tracked as ADRs in version control (not included in
-  this public repository yet, see [Design decisions](#design-decisions)
-  below for the running summary).
+  discarded, is kept in a separate set of engineering notes, not part
+  of this repository.
 - Deploy topology: static frontend build on Vercel
   ([tiquetly.vercel.app](https://tiquetly.vercel.app)), backend + a
   managed Postgres instance on Railway, one service each. Local
@@ -167,8 +160,8 @@ npm run dev
 
 An alternative that doesn't depend on installing Python/Node on the
 machine: brings up backend, frontend, and a real Postgres (not the
-local dev SQLite, see [Design decisions](#design-decisions)) in three
-containers. Works both outside the devcontainer (any machine with
+local dev SQLite) in three containers. Works both outside the
+devcontainer (any machine with
 Docker and Docker Compose installed) and from inside it, since the
 devcontainer has the `docker-in-docker` feature enabled.
 
@@ -270,107 +263,7 @@ After the seed, at http://localhost:5173:
    in. One ticket from the seeded movie event already shows as
    "already used" so you can test that outcome without validating the
    same ticket twice by hand.
-4. **Admin** (`admin@tiquetly.com`, optional, see ADR 0023): sign in, go
-   to "Admin", create a new organizer or gatekeeper account and sign in
-   as it right away, no seed script or database access needed.
+4. **Admin** (`admin@tiquetly.com`, optional): sign in, go to "Admin",
+   create a new organizer or gatekeeper account and sign in as it
+   right away, no seed script or database access needed.
 
-## Current state
-
-What already works end to end:
-
-- Authentication with the three roles the challenge asks for (organizer,
-  customer, gatekeeper), customer registration, login, JWT. A fourth,
-  optional role (admin) creates organizer and gatekeeper accounts from
-  its own screen instead of only through the seed script, see ADR 0023.
-- Integration with Ticketmaster Discovery and TMDb behind a shared
-  catalog adapter.
-- The organizer creates events from the catalog through its own screen,
-  edits published ones, and unpublishes them.
-- The customer browses, searches, and filters published events.
-- Reservation by quantity or by seat map: movies are always seat map,
-  shows default to quantity but switch to seat map automatically when
-  Ticketmaster reports assigned seating for the picked event (see ADR
-  0003's addendum). Both guaranteed to never sell the same spot twice
-  under concurrency, and both with the option to cancel (before or
-  after paying) and return the spot to stock.
-- Simulated payment (approval and decline) with a test card, releases
-  the stock again on decline or cancellation.
-- Signed QR ticket (not forgeable) and the "My tickets" area.
-- Ticket sharing via a public link, no login required.
-- Gate screen: pick today's event, read by camera or type the code in
-  by hand, the four outcomes (valid, invalid, already used, wrong
-  event).
-- Seed script with test users and events.
-- `docker-compose.yml` (stretch goal): backend, frontend, and a real
-  Postgres in three containers, confirmed end to end (build, migrations,
-  seed, and the full browse/reserve/pay/ticket flow driven by a real
-  browser against the containerized stack), see
-  [With Docker Compose](#with-docker-compose).
-
-Live demo (Vercel + Railway, see [Design decisions](#design-decisions)):
-https://tiquetly.vercel.app/
-
-No known bugs in the parts already implemented. One known limit:
-
-- The movie event created by the seed only shows up in the gate
-  screen's "today" dropdown, and only stays visible on the browse page
-  at all (see ADR 0025), on the day the seed was run (the date is set
-  a little past seed time, not recalculated afterward), so running the
-  seed and testing the gate on different days requires running the
-  seed again (idempotent for users and events that already exist, but
-  it doesn't reschedule the date of an event that already exists).
-
-This section will be fully revised before the final submission, as the
-assignment asks.
-
-## Design decisions
-
-Recorded here in summary, the full history of alternatives considered
-and discarded lives in the project's version control.
-
-- Two catalog sources (Ticketmaster for shows, TMDb for movies) behind
-  a shared adapter, so the rest of the backend never needs to know
-  which of the two originated an event.
-- Two reservation flows (quantity and seat map), because
-  general-admission floor tickets and a movie screening are genuinely
-  different products, forcing both into the same model would distort
-  one side or the other.
-- No real-time seat map: the screen is optimistic (shows a seat as free
-  until someone tries to reserve it) and the server is the source of
-  truth at reservation time, with a clear error if the seat was taken
-  while the customer was choosing. The gain from a real-time channel
-  doesn't pay for the added complexity at this project's size.
-- A visual identity of its own (dark palette, Bebas Neue/IBM Plex
-  typography, event cards shaped like a physical ticket stub), compared
-  side by side with two other directions before being chosen, to avoid
-  the generic default look of a tool-generated UI.
-- Simulated payment through a fake card form with test numbers, instead
-  of a single success button, to genuinely represent the two paths the
-  assignment asks for (approval and decline).
-- `docker-compose.yml` runs the backend against Postgres, not the local
-  dev SQLite, to exercise the same database engine production uses
-  (same choice as ADR 0002), instead of just repeating what the local
-  setup already shows.
-- The app itself has a real, dynamic English/Portuguese language switch
-  (English default), backed by a hand-rolled dictionary and React
-  Context rather than a library like `react-i18next`, in the same spirit
-  as avoiding other dependencies elsewhere in the project. Backend
-  domain errors carry a stable machine-readable code so the frontend can
-  translate them too, not just the static screen text (ADR 0020). This
-  is separate from the bilingual documentation (this README included),
-  which is static markdown and has no such toggle, see the language link
-  at the top of this file.
-- A `pending` reservation that is never paid or cancelled expires on its
-  own after 10 minutes, releasing the spot or seat back to stock. Checked
-  lazily wherever the app already reads or writes an event's availability
-  (reserving, paying, reloading the page), not a background job or
-  scheduler, in the same spirit as the "no real-time channel" choice
-  above (ADR 0024). The purchase screen shows a live countdown toward the
-  same deadline, advisory only: the backend enforces it regardless of
-  what the customer's own clock shows.
-- A published event whose date has already passed drops out of the
-  plain browse search automatically (a read-time filter, `status` keeps
-  reading `published`, no unpublish happens on its own), so a customer
-  never lands on something they cannot actually attend. The gate
-  screen's own "today" query is unaffected, an event that already
-  started is exactly what a gatekeeper needs to find there (ADR 0025).
