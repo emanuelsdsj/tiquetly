@@ -80,6 +80,27 @@ def test_search_ignores_the_year_filter():
     provider.search(keyword="test", year=2099)
 
 
+def test_search_forwards_the_country_filter_as_country_code():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.params["countryCode"] == "BR"
+        return httpx.Response(200, json={"_embedded": {"events": [RAW_EVENT]}})
+
+    provider = _provider(handler)
+
+    provider.search(keyword="test", country="BR")
+
+
+def test_search_ignores_the_genre_filter():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert "genre" not in request.url.params
+        assert "with_genres" not in request.url.params
+        return httpx.Response(200, json={"_embedded": {"events": [RAW_EVENT]}})
+
+    provider = _provider(handler)
+
+    provider.search(keyword="test", genre="28")
+
+
 def test_search_returns_an_empty_list_when_ticketmaster_has_no_matches():
     def handler(request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, json={"page": {"totalElements": 0}})

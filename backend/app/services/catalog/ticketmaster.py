@@ -23,12 +23,21 @@ class TicketmasterProvider:
         self._client = client or httpx.Client(timeout=10.0)
 
     def search(
-        self, keyword: str | None = None, *, city: str | None = None, year: int | None = None
+        self,
+        keyword: str | None = None,
+        *,
+        city: str | None = None,
+        year: int | None = None,
+        country: str | None = None,
+        genre: str | None = None,
     ) -> list[CatalogEvent]:
-        # `year` is part of the shared CatalogProvider signature but has no
-        # equivalent here: Ticketmaster's own date filtering is a
-        # start/end datetime range, not a bare year, and this project has
-        # no UI need for it yet, so it is silently ignored rather than
+        # `year` and `genre` are part of the shared CatalogProvider
+        # signature but have no equivalent here: Ticketmaster's own date
+        # filtering is a start/end datetime range, not a bare year, and
+        # this project has no UI need for it yet; a music sub-genre would
+        # need its own genreId lookup on top of the classificationName
+        # already fixed to "Music" below, more than this project's
+        # filters ask for. Both are silently ignored rather than
         # half-implemented.
         if not settings.ticketmaster_api_key:
             raise CatalogProviderError(
@@ -44,6 +53,8 @@ class TicketmasterProvider:
             params["keyword"] = keyword
         if city:
             params["city"] = city
+        if country:
+            params["countryCode"] = country
 
         try:
             response = self._client.get(TICKETMASTER_EVENTS_URL, params=params)

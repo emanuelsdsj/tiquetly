@@ -38,11 +38,18 @@ class CatalogEvent(BaseModel):
 
 
 class CatalogProvider(Protocol):
-    # `city` and `year` are accepted by both providers for a uniform call
-    # signature (see the route in api/routes/catalog.py), but each only
-    # honors the one filter its own source actually supports: city for
-    # Ticketmaster (shows), year for TMDb (movies, and only alongside a
-    # keyword, see TmdbProvider.search).
+    # `city`, `year`, `country` and `genre` are accepted by both providers
+    # for a uniform call signature (see the route in
+    # api/routes/catalog.py), but each only honors the filters its own
+    # source actually supports: city and country for Ticketmaster
+    # (shows), year and genre for TMDb (movies, and only without a
+    # keyword for genre, see TmdbProvider.search).
     def search(
-        self, keyword: str | None = None, *, city: str | None = None, year: int | None = None
+        self,
+        keyword: str | None = None,
+        *,
+        city: str | None = None,
+        year: int | None = None,
+        country: str | None = None,
+        genre: str | None = None,
     ) -> list[CatalogEvent]: ...

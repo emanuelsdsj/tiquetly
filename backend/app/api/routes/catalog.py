@@ -15,9 +15,11 @@ def search_catalog(
     keyword: str | None = None,
     city: str | None = None,
     year: int | None = None,
+    country: str | None = None,
+    genre: str | None = None,
     ticketmaster: TicketmasterProvider = Depends(get_ticketmaster_provider),
     tmdb: TmdbProvider = Depends(get_tmdb_provider),
     current_user: User = Depends(require_organizer),
 ) -> list[CatalogEvent]:
     provider: CatalogProvider = ticketmaster if category == EventCategory.show else tmdb
-    return provider.search(keyword, city=city, year=year)
+    return provider.search(keyword, city=city, year=year, country=country, genre=genre)

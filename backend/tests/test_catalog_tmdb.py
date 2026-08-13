@@ -80,6 +80,49 @@ def test_search_ignores_the_city_filter():
     _provider(handler).search(keyword="test", city="Sao Paulo")
 
 
+def test_search_ignores_the_country_filter():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert "country" not in request.url.params
+        assert "with_origin_country" not in request.url.params
+        return httpx.Response(200, json={"results": [RAW_MOVIE]})
+
+    _provider(handler).search(keyword="test", country="BR")
+
+
+def test_search_with_a_genre_and_no_keyword_hits_discover():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/3/discover/movie"
+        assert request.url.params["with_genres"] == "35"
+        assert request.url.params["sort_by"] == "popularity.desc"
+        return httpx.Response(200, json={"results": [RAW_MOVIE]})
+
+    events = _provider(handler).search(genre="35")
+
+    assert len(events) == 1
+
+
+def test_search_combines_genre_and_year_on_discover():
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/3/discover/movie"
+        assert request.url.params["with_genres"] == "35"
+        assert request.url.params["primary_release_year"] == "2099"
+        return httpx.Response(200, json={"results": [RAW_MOVIE]})
+
+    _provider(handler).search(genre="35", year=2099)
+
+
+def test_search_with_a_keyword_ignores_the_genre_filter():
+    # /search/movie has no genre parameter, unlike year (which it accepts
+    # as primary_release_year), so a keyword search silently drops genre
+    # rather than half-applying it.
+    def handler(request: httpx.Request) -> httpx.Response:
+        assert request.url.path == "/3/search/movie"
+        assert "with_genres" not in request.url.params
+        return httpx.Response(200, json={"results": [RAW_MOVIE]})
+
+    _provider(handler).search(keyword="test", genre="35")
+
+
 def test_search_raises_when_the_api_key_is_not_configured(monkeypatch):
     monkeypatch.setattr(settings, "tmdb_api_key", "")
     provider = _provider(lambda request: httpx.Response(200, json={}))

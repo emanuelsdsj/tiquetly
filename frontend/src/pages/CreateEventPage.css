@@ -79,7 +79,8 @@
   margin-bottom: 8px;
 }
 
-.create-event-page__search input {
+.create-event-page__search input,
+.create-event-page__search select {
   flex: 1;
   background: var(--ink-raised);
   border: 1px solid var(--ink-muted);
@@ -88,6 +89,10 @@
   color: var(--ink-text);
   font-family: var(--font-body);
   font-size: 0.95rem;
+}
+
+.create-event-page__search select {
+  cursor: pointer;
 }
 
 /* Compound selector needed to outweigh `.create-event-page__search input`

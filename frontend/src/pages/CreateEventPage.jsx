@@ -6,10 +6,16 @@ import { Spinner } from '../components/Spinner'
 import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
+import { MOVIE_GENRES, SHOW_COUNTRIES } from '../lib/catalogFilters'
 import { formatEventDate, toDatetimeLocalValue } from '../lib/format'
 import './CreateEventPage.css'
 
 const CATEGORIES = ['show', 'movie']
+
+// Most organizer demand is domestic, so the show search starts scoped to
+// Brazil rather than the whole world; switching it back to "all
+// countries" is one click away (see the empty-value option below).
+const DEFAULT_SHOW_COUNTRY = 'BR'
 
 function emptyDetailsForm(catalogEvent) {
   return {
@@ -29,6 +35,8 @@ export function CreateEventPage() {
   const [keyword, setKeyword] = useState('')
   const [city, setCity] = useState('')
   const [year, setYear] = useState('')
+  const [country, setCountry] = useState(DEFAULT_SHOW_COUNTRY)
+  const [genre, setGenre] = useState('')
   const [results, setResults] = useState(null)
   const [searching, setSearching] = useState(false)
   const [searchError, setSearchError] = useState(null)
@@ -46,6 +54,8 @@ export function CreateEventPage() {
     setKeyword('')
     setCity('')
     setYear('')
+    setCountry(DEFAULT_SHOW_COUNTRY)
+    setGenre('')
     setSearchError(null)
   }
 
@@ -56,6 +66,8 @@ export function CreateEventPage() {
       searchCatalog(category, keyword || undefined, token, {
         city: category === 'show' ? city || undefined : undefined,
         year: category === 'movie' ? year || undefined : undefined,
+        country: category === 'show' ? country || undefined : undefined,
+        genre: category === 'movie' ? genre || undefined : undefined,
       })
         .then(setResults)
         .catch((err) => setSearchError(translateApiError(err, t)))
@@ -66,7 +78,7 @@ export function CreateEventPage() {
     }, 300)
     return () => clearTimeout(timeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [category, keyword, city, year])
+  }, [category, keyword, city, year, country, genre])
 
   function selectCatalogEvent(catalogEvent) {
     setSelected(catalogEvent)
@@ -191,6 +203,21 @@ export function CreateEventPage() {
                 autoComplete="off"
               />
             )}
+            {category === 'show' && (
+              <select
+                className="create-event-page__search-filter"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                aria-label={t('createEvent.countryAriaLabel')}
+              >
+                <option value="">{t('createEvent.countryAll')}</option>
+                {SHOW_COUNTRIES.map((code) => (
+                  <option key={code} value={code}>
+                    {t(`createEvent.country.${code}`)}
+                  </option>
+                ))}
+              </select>
+            )}
             {category === 'movie' && (
               <input
                 type="number"
@@ -201,6 +228,21 @@ export function CreateEventPage() {
                 onChange={(e) => setYear(e.target.value)}
                 aria-label={t('createEvent.yearAriaLabel')}
               />
+            )}
+            {category === 'movie' && (
+              <select
+                className="create-event-page__search-filter"
+                value={genre}
+                onChange={(e) => setGenre(e.target.value)}
+                aria-label={t('createEvent.genreAriaLabel')}
+              >
+                <option value="">{t('createEvent.genreAll')}</option>
+                {MOVIE_GENRES.map((id) => (
+                  <option key={id} value={id}>
+                    {t(`createEvent.genre.${id}`)}
+                  </option>
+                ))}
+              </select>
             )}
           </div>
 

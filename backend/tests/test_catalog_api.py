@@ -14,9 +14,15 @@ class _FakeProvider:
         self.last_call = None
 
     def search(
-        self, keyword: str | None = None, *, city: str | None = None, year: int | None = None
+        self,
+        keyword: str | None = None,
+        *,
+        city: str | None = None,
+        year: int | None = None,
+        country: str | None = None,
+        genre: str | None = None,
     ) -> list[CatalogEvent]:
-        self.last_call = {"keyword": keyword, "city": city, "year": year}
+        self.last_call = {"keyword": keyword, "city": city, "year": year, "country": country, "genre": genre}
         return self._events
 
 
@@ -90,5 +96,39 @@ def test_search_catalog_forwards_city_and_year_to_the_right_provider(client, ses
 
     app.dependency_overrides.pop(get_ticketmaster_provider, None)
     app.dependency_overrides.pop(get_tmdb_provider, None)
-    assert ticketmaster.last_call == {"keyword": "test", "city": "Sao Paulo", "year": 2099}
-    assert tmdb.last_call == {"keyword": "test", "city": "Sao Paulo", "year": 2099}
+    assert ticketmaster.last_call == {
+        "keyword": "test",
+        "city": "Sao Paulo",
+        "year": 2099,
+        "country": None,
+        "genre": None,
+    }
+    assert tmdb.last_call == {
+        "keyword": "test",
+        "city": "Sao Paulo",
+        "year": 2099,
+        "country": None,
+        "genre": None,
+    }
+
+
+def test_search_catalog_forwards_country_and_genre_to_the_right_provider(client, session):
+    token = _token_for(session, UserRole.organizer)
+    ticketmaster = _FakeProvider([FAKE_SHOW])
+    tmdb = _FakeProvider([FAKE_MOVIE])
+    app.dependency_overrides[get_ticketmaster_provider] = lambda: ticketmaster
+    app.dependency_overrides[get_tmdb_provider] = lambda: tmdb
+
+    client.get(
+        "/catalog/search?category=show&country=BR",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    client.get(
+        "/catalog/search?category=movie&genre=35",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    app.dependency_overrides.pop(get_ticketmaster_provider, None)
+    app.dependency_overrides.pop(get_tmdb_provider, None)
+    assert ticketmaster.last_call["country"] == "BR"
+    assert tmdb.last_call["genre"] == "35"

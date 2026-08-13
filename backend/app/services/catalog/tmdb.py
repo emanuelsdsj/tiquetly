@@ -19,9 +19,9 @@ class TmdbProvider:
 
     Three different TMDb endpoints back a single `search`, picked by what
     was actually asked for: a keyword searches the full catalog by title
-    (`/search/movie`); a year with no keyword filters by release year
+    (`/search/movie`); a year and/or genre with no keyword filters
     without a text query (`/discover/movie`, the only one of the three
-    that supports that); neither one lists what's currently in theaters
+    that supports either); neither one lists what's currently in theaters
     (`/movie/now_playing`), the default with the least to configure.
     """
 
@@ -29,24 +29,39 @@ class TmdbProvider:
         self._client = client or httpx.Client(timeout=10.0)
 
     def search(
-        self, keyword: str | None = None, *, city: str | None = None, year: int | None = None
+        self,
+        keyword: str | None = None,
+        *,
+        city: str | None = None,
+        year: int | None = None,
+        country: str | None = None,
+        genre: str | None = None,
     ) -> list[CatalogEvent]:
-        # `city` is part of the shared CatalogProvider signature but has no
-        # equivalent here: TMDb has no venue/location concept, so it is
+        # `city` and `country` are part of the shared CatalogProvider
+        # signature but have no equivalent here: TMDb has no
+        # venue/location concept for a movie itself, so both are
         # silently ignored.
         if not settings.tmdb_api_key:
             raise CatalogProviderError("CATALOG_API_KEY_MISSING", "TMDb API key is not configured", provider="TMDb")
 
         if keyword:
+            # `with_genres` only exists on /discover/movie, not
+            # /search/movie's free-text search, so a genre picked
+            # alongside a keyword has no endpoint that honors both; the
+            # keyword wins and genre is silently ignored here, same
+            # spirit as city/country above.
             url, params = TMDB_SEARCH_URL, {"api_key": settings.tmdb_api_key, "query": keyword}
             if year:
                 params["primary_release_year"] = year
-        elif year:
+        elif year or genre:
             url, params = TMDB_DISCOVER_URL, {
                 "api_key": settings.tmdb_api_key,
-                "primary_release_year": year,
                 "sort_by": "popularity.desc",
             }
+            if year:
+                params["primary_release_year"] = year
+            if genre:
+                params["with_genres"] = genre
         else:
             url, params = TMDB_NOW_PLAYING_URL, {"api_key": settings.tmdb_api_key}
 
