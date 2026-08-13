@@ -286,7 +286,3 @@ descartadas fica no controle de versão do projeto.
   da tela (ADR 0020). Isso é diferente da documentação bilíngue (este
   README incluso), que é markdown estático e não tem esse toggle, veja
   o link de idioma no topo deste arquivo.
-
-Veja [`docs/USO_DE_IA.pt-BR.md`](docs/USO_DE_IA.pt-BR.md) para um relato
-detalhado de como a IA foi usada ao longo do desenvolvimento deste
-projeto.

@@ -292,6 +292,3 @@ and discarded lives in the project's version control.
   is separate from the bilingual documentation (this README included),
   which is static markdown and has no such toggle, see the language link
   at the top of this file.
-
-See [`docs/USO_DE_IA.md`](docs/USO_DE_IA.md) for a detailed account of
-how AI was used throughout this project's development.
