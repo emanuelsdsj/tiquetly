@@ -48,6 +48,7 @@ class ReservationStatus(str, Enum):
     paid = "paid"
     failed = "failed"
     cancelled = "cancelled"
+    expired = "expired"
 
 
 class TicketStatus(str, Enum):

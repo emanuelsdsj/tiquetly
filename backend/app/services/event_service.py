@@ -5,6 +5,7 @@ from sqlmodel import Session, select
 from app.core.errors import EventNotFoundError, EventNotPublishedError, ForbiddenError
 from app.models import Event, EventCategory, EventStatus, ReservationMode, Seat, User
 from app.schemas import EventCreate, EventUpdate
+from app.services import reservation_service
 
 # Simple fixed-width layout for seatmap events: seats fill row A first, then
 # B, and so on, ten to a row. Good enough for a theater-sized capacity;
@@ -124,6 +125,11 @@ def list_event_seats(session: Session, event_id: int) -> list[Seat]:
     event = session.get(Event, event_id)
     if event is None or event.status != EventStatus.published:
         raise EventNotFoundError("EVENT_NOT_FOUND", f"event {event_id} not found", event_id=str(event_id))
+
+    # Same reasoning as the single-event GET route (ADR 0024): a customer
+    # reloading the seat map should see a stale-held seat freed up without
+    # needing someone else to attempt a reservation first.
+    reservation_service.expire_stale_pending_reservations(session, event_id)
 
     statement = select(Seat).where(Seat.event_id == event_id)
     seats = list(session.exec(statement).all())

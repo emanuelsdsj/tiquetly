@@ -232,18 +232,11 @@ Escrito mas não confirmado rodando de ponta a ponta (ver limites abaixo):
 - `docker-compose.yml` (stretch): backend, frontend e Postgres em três
   containers, ver [Com Docker Compose](#com-docker-compose).
 
-O que ainda falta, pela ordem prevista:
+Demo no ar (Vercel + Railway, ver [Decisões de design](#decisões-de-design)):
+https://tiquetly.vercel.app/
 
-- Deploy.
+Nenhum bug conhecido nas partes já implementadas. Dois limites conhecidos:
 
-Nenhum bug conhecido nas partes já implementadas. Três limites conhecidos:
-
-- Uma reserva `pending` sem pagamento nem cancelamento explícito fica
-  presa nesse estado para sempre, segurando o lugar ou o estoque, já
-  que não existe expiração automática. Na prática isso só afeta quem
-  abandona o fluxo de pagamento sem clicar em "Desistir e cancelar
-  reserva"; o botão existe exatamente para dar essa saída, mas nada
-  libera o lugar sozinho se ninguém tomar essa ação.
 - O evento de filme criado pelo seed só aparece no dropdown "hoje" da
   tela de portaria no dia em que o seed foi rodado (a data é fixada em
   meio-dia UTC no momento do seed, não recalculada depois), então rodar
@@ -296,3 +289,12 @@ descartadas fica no controle de versão do projeto.
   da tela (ADR 0020). Isso é diferente da documentação bilíngue (este
   README incluso), que é markdown estático e não tem esse toggle, veja
   o link de idioma no topo deste arquivo.
+- Uma reserva `pending` que nunca é paga nem cancelada expira sozinha
+  depois de 10 minutos, devolvendo o lugar ou assento ao estoque.
+  Checado de forma preguiçosa em todo lugar que o app já lê ou escreve a
+  disponibilidade de um evento (reservar, pagar, recarregar a página),
+  não um job em background nem scheduler, no mesmo espírito da escolha
+  "sem canal em tempo real" acima (ADR 0024). A tela de compra mostra uma
+  contagem regressiva ao vivo até o mesmo prazo, só consultiva: o
+  backend aplica o prazo independente do que o relógio do cliente
+  mostra.

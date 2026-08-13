@@ -1,3 +1,5 @@
+from datetime import UTC, datetime, timedelta
+
 from sqlmodel import Session, select, update
 
 from app.core.errors import (
@@ -30,6 +32,51 @@ from app.services import ticket_service
 APPROVE_CARD_NUMBER = "4242424242424242"
 DECLINE_CARD_NUMBER = "4000000000000002"
 
+# How long a reservation can sit unpaid before it is swept back to
+# available stock (ADR 0024). Applies to both reservation modes alike.
+RESERVATION_PENDING_TTL_MINUTES = 10
+
+
+def _utcnow() -> datetime:
+    return datetime.now(UTC)
+
+
+def expire_stale_pending_reservations(session: Session, event_id: int) -> None:
+    """Sweep this event's own pending reservations older than the TTL back
+    to available stock. Lazy, not a background job (ADR 0024): called at
+    the points that already read or mutate this event's availability, the
+    same "checked at the moment it matters" posture as the atomic guards
+    in this module and ADR 0004's realtime tradeoff, so no new moving part
+    (scheduler, cron, worker process) enters the deploy.
+
+    Guarded per-reservation, not as one batch UPDATE, so two callers
+    racing to expire the same stale reservation can never both release its
+    stock: only the caller whose conditional UPDATE actually flips
+    pending -> expired does the release.
+    """
+    cutoff = _utcnow() - timedelta(minutes=RESERVATION_PENDING_TTL_MINUTES)
+    stale = session.exec(
+        select(Reservation).where(
+            Reservation.event_id == event_id,
+            Reservation.status == ReservationStatus.pending,
+            Reservation.created_at < cutoff,
+        )
+    ).all()
+    if not stale:
+        return
+
+    for reservation in stale:
+        statement = (
+            update(Reservation)
+            .where(Reservation.id == reservation.id, Reservation.status == ReservationStatus.pending)
+            .values(status=ReservationStatus.expired)
+        )
+        result = session.execute(statement)
+        if result.rowcount == 0:
+            continue
+        _release_held_stock(session, reservation)
+    session.commit()
+
 
 def create_general_reservation(session: Session, customer: User, event_id: int, quantity: int) -> Reservation:
     event = session.get(Event, event_id)
@@ -37,6 +84,8 @@ def create_general_reservation(session: Session, customer: User, event_id: int, 
         raise EventNotFoundError("EVENT_NOT_FOUND", f"event {event_id} not found", event_id=str(event_id))
     if event.reservation_mode != ReservationMode.general:
         raise WrongReservationModeError("WRONG_MODE_EXPECTS_SEATS", "this event sells by seat, not by quantity")
+
+    expire_stale_pending_reservations(session, event_id)
 
     # Single UPDATE, guarded by the capacity check in its own WHERE clause: two
     # concurrent requests racing for the last seats can never both succeed past
@@ -70,6 +119,8 @@ def create_seatmap_reservation(session: Session, customer: User, event_id: int, 
         raise EventNotFoundError("EVENT_NOT_FOUND", f"event {event_id} not found", event_id=str(event_id))
     if event.reservation_mode != ReservationMode.seatmap:
         raise WrongReservationModeError("WRONG_MODE_EXPECTS_QUANTITY", "this event sells by quantity, not by seat")
+
+    expire_stale_pending_reservations(session, event_id)
 
     unique_seat_ids = list(dict.fromkeys(seat_ids))
 
@@ -118,6 +169,10 @@ def pay_reservation(session: Session, customer: User, reservation_id: int, card_
         )
     if reservation.customer_id != customer.id:
         raise ForbiddenError("FORBIDDEN_NOT_RESERVATION_OWNER", "this reservation belongs to another customer")
+
+    expire_stale_pending_reservations(session, reservation.event_id)
+    session.refresh(reservation)
+
     if reservation.status != ReservationStatus.pending:
         raise ReservationNotPendingError(
             "RESERVATION_NOT_PENDING",

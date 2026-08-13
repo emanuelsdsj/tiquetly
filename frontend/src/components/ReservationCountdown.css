@@ -1,0 +1,6 @@
+.reservation-countdown {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: #5b4e3a;
+  margin: -8px 0 0;
+}

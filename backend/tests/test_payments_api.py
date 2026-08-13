@@ -1,5 +1,9 @@
+from datetime import UTC, datetime, timedelta
+
+from sqlmodel import select
+
 from app.core.security import create_access_token
-from app.models import User, UserRole
+from app.models import Reservation, User, UserRole
 from app.services.reservation_service import APPROVE_CARD_NUMBER, DECLINE_CARD_NUMBER
 
 SHOW_PAYLOAD = {
@@ -171,3 +175,22 @@ def test_pay_declines_and_releases_seatmap_seats(client, session):
     assert response.json()["status"] == "failed"
     updated_seats = client.get(f"/events/{event_id}/seats").json()
     assert all(seat["status"] == "available" for seat in updated_seats)
+
+
+def test_pay_rejects_a_reservation_that_expired_past_the_ttl(client, session):
+    event_id = _publish_event(client, session, SHOW_PAYLOAD)
+    token = _token_for(session, UserRole.customer, "c@example.com")
+    reservation = _reserve_general(client, token, event_id, 2)
+    stored = session.exec(select(Reservation).where(Reservation.id == reservation["id"])).one()
+    stored.created_at = datetime.now(UTC) - timedelta(minutes=11)
+    session.add(stored)
+    session.commit()
+
+    response = _pay(client, token, reservation["id"], APPROVE_CARD_NUMBER)
+
+    assert response.status_code == 409
+    body = response.json()
+    assert body["code"] == "RESERVATION_NOT_PENDING"
+    assert body["params"] == {"status": "expired"}
+    event = client.get(f"/events/{event_id}").json()
+    assert event["reserved_count"] == 0

@@ -39,6 +39,8 @@ export const ptBR = {
     giveUpAndCancel: 'Desistir e cancelar reserva',
     declinedPayment: 'Pagamento recusado. O estoque foi liberado, você pode reservar de novo.',
     declinedCancel: 'Reserva cancelada. O estoque foi liberado, você pode reservar de novo.',
+    reservationExpired: 'O tempo acabou. A reserva foi liberada, você pode reservar de novo.',
+    expiresIn: (params) => `Pague em até ${params.time} ou a reserva é liberada automaticamente.`,
     paidGeneral: (params) => {
       const count = params.count
       const noun = count === 1 ? 'ingresso confirmado' : 'ingressos confirmados'

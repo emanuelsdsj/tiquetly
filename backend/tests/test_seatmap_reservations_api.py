@@ -1,5 +1,9 @@
+from datetime import UTC, datetime, timedelta
+
+from sqlmodel import select
+
 from app.core.security import create_access_token
-from app.models import User, UserRole
+from app.models import Reservation, User, UserRole
 
 MOVIE_PAYLOAD = {
     "source": "tmdb",
@@ -167,3 +171,24 @@ def test_reserve_seats_rejects_a_nonexistent_event(client, session):
     )
 
     assert response.status_code == 404
+
+
+def test_a_stale_pending_seat_reservation_frees_the_seat_on_the_next_read(client, session):
+    event_id = _publish_event(client, session, MOVIE_PAYLOAD)
+    token = _token_for(session, UserRole.customer, "c@example.com")
+    seats = client.get(f"/events/{event_id}/seats").json()
+    reserved = client.post(
+        f"/events/{event_id}/seat-reservations",
+        json={"seat_ids": [seats[0]["id"]]},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert reserved.status_code == 201
+
+    reservation = session.exec(select(Reservation)).one()
+    reservation.created_at = datetime.now(UTC) - timedelta(minutes=11)
+    session.add(reservation)
+    session.commit()
+
+    seats_after = client.get(f"/events/{event_id}/seats").json()
+
+    assert seats_after[0]["status"] == "available"

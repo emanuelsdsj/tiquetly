@@ -39,6 +39,9 @@ export const en = {
     giveUpAndCancel: 'Give up and cancel reservation',
     declinedPayment: 'Payment declined. The stock was released, you can reserve again.',
     declinedCancel: 'Reservation cancelled. The stock was released, you can reserve again.',
+    reservationExpired: 'Time is up. The reservation was released, you can reserve again.',
+    expiresIn: (params) =>
+      `Pay within ${params.time} or the reservation is released automatically.`,
     paidGeneral: (params) => {
       const count = params.count
       const noun = count === 1 ? 'ticket confirmed' : 'tickets confirmed'

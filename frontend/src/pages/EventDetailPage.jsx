@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 import { getEvent, getEventSeats, reserveGeneral, reserveSeats } from '../api/events'
 import { cancelReservation } from '../api/reservations'
 import { PaymentForm } from '../components/PaymentForm'
+import { ReservationCountdown } from '../components/ReservationCountdown'
 import { SeatMap } from '../components/SeatMap'
 import { Spinner } from '../components/Spinner'
 import { useAuth } from '../context/AuthContext'
@@ -52,6 +53,14 @@ export function EventDetailPage() {
 
   function handleDeclined() {
     setDeclinedMessage(t('eventDetail.declinedPayment'))
+    setReservation(null)
+    setSelectedSeatIds([])
+    getEvent(id).then(setEvent)
+    if (event?.reservation_mode === 'seatmap') getEventSeats(id).then(setSeats)
+  }
+
+  function handleExpired() {
+    setDeclinedMessage(t('eventDetail.reservationExpired'))
     setReservation(null)
     setSelectedSeatIds([])
     getEvent(id).then(setEvent)
@@ -169,6 +178,10 @@ export function EventDetailPage() {
                     <p className="event-detail-page__confirmation">
                       {t('eventDetail.pendingGeneral', { count: reservation.quantity })}
                     </p>
+                    <ReservationCountdown
+                      createdAt={reservation.created_at}
+                      onExpire={handleExpired}
+                    />
                     <PaymentForm
                       reservation={reservation}
                       amount={event.price * reservation.quantity}
@@ -255,6 +268,10 @@ export function EventDetailPage() {
                         labels: selectedSeatLabels || t('eventDetail.seatSelected'),
                       })}
                     </p>
+                    <ReservationCountdown
+                      createdAt={reservation.created_at}
+                      onExpire={handleExpired}
+                    />
                     <PaymentForm
                       reservation={reservation}
                       amount={event.price * selectedSeatIds.length}

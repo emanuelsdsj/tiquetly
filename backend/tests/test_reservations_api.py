@@ -1,5 +1,9 @@
+from datetime import UTC, datetime, timedelta
+
+from sqlmodel import select
+
 from app.core.security import create_access_token
-from app.models import User, UserRole
+from app.models import Reservation, User, UserRole
 
 SHOW_PAYLOAD = {
     "source": "ticketmaster",
@@ -139,3 +143,66 @@ def test_reserve_rejects_zero_quantity(client, session):
     )
 
     assert response.status_code == 422
+
+
+def _backdate_only_reservation(session, minutes):
+    reservation = session.exec(select(Reservation)).one()
+    reservation.created_at = datetime.now(UTC) - timedelta(minutes=minutes)
+    session.add(reservation)
+    session.commit()
+    return reservation
+
+
+def test_a_stale_pending_reservation_releases_capacity_on_the_next_attempt(client, session):
+    event_id = _publish_event(client, session, SHOW_PAYLOAD)
+    token = _token_for(session, UserRole.customer, "c@example.com")
+    first = client.post(
+        f"/events/{event_id}/reservations",
+        json={"quantity": 2},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert first.status_code == 201
+    _backdate_only_reservation(session, minutes=11)
+
+    # Capacity is full (2/2) and would 409 if the stale reservation above
+    # were not swept first (ADR 0024): this only succeeds if the sweep ran.
+    second = client.post(
+        f"/events/{event_id}/reservations",
+        json={"quantity": 2},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert second.status_code == 201
+    first_reservation = session.get(Reservation, first.json()["id"])
+    session.refresh(first_reservation)
+    assert first_reservation.status == "expired"
+
+
+def test_a_stale_pending_reservation_releases_capacity_just_by_reading_the_event(client, session):
+    event_id = _publish_event(client, session, SHOW_PAYLOAD)
+    token = _token_for(session, UserRole.customer, "c@example.com")
+    client.post(
+        f"/events/{event_id}/reservations",
+        json={"quantity": 2},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    _backdate_only_reservation(session, minutes=11)
+
+    event = client.get(f"/events/{event_id}").json()
+
+    assert event["reserved_count"] == 0
+
+
+def test_a_fresh_pending_reservation_is_not_expired(client, session):
+    event_id = _publish_event(client, session, SHOW_PAYLOAD)
+    token = _token_for(session, UserRole.customer, "c@example.com")
+    client.post(
+        f"/events/{event_id}/reservations",
+        json={"quantity": 2},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    _backdate_only_reservation(session, minutes=5)
+
+    event = client.get(f"/events/{event_id}").json()
+
+    assert event["reserved_count"] == 2

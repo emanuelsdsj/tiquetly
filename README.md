@@ -234,19 +234,11 @@ Written but not confirmed running end to end (see the limits below):
 - `docker-compose.yml` (stretch goal): backend, frontend, and Postgres
   in three containers, see [With Docker Compose](#with-docker-compose).
 
-What's still missing, in the planned order:
+Live demo (Vercel + Railway, see [Design decisions](#design-decisions)):
+https://tiquetly.vercel.app/
 
-- Deploy.
+No known bugs in the parts already implemented. Two known limits:
 
-No known bugs in the parts already implemented. Three known limits:
-
-- A `pending` reservation with no payment or explicit cancellation stays
-  stuck in that state forever, holding the spot or the stock, since
-  there's no automatic expiration. In practice this only affects
-  someone who abandons the payment flow without clicking "Desistir e
-  cancelar reserva" (give up and cancel reservation); the button exists
-  exactly to provide that way out, but nothing releases the spot on its
-  own if no one takes that action.
 - The movie event created by the seed only shows up in the gate
   screen's "today" dropdown on the day the seed was run (the date is
   fixed at noon UTC at seed time, not recalculated afterward), so
@@ -300,3 +292,11 @@ and discarded lives in the project's version control.
   is separate from the bilingual documentation (this README included),
   which is static markdown and has no such toggle, see the language link
   at the top of this file.
+- A `pending` reservation that is never paid or cancelled expires on its
+  own after 10 minutes, releasing the spot or seat back to stock. Checked
+  lazily wherever the app already reads or writes an event's availability
+  (reserving, paying, reloading the page), not a background job or
+  scheduler, in the same spirit as the "no real-time channel" choice
+  above (ADR 0024). The purchase screen shows a live countdown toward the
+  same deadline, advisory only: the backend enforces it regardless of
+  what the customer's own clock shows.

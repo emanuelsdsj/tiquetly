@@ -83,6 +83,11 @@ def get_event(event_id: int, session: Session = Depends(get_session)) -> Event:
     event = session.get(Event, event_id)
     if event is None or event.status != EventStatus.published:
         raise EventNotFoundError("EVENT_NOT_FOUND", f"event {event_id} not found", event_id=str(event_id))
+    # Sweeps this event's own stale pending reservations first (ADR 0024),
+    # so reserved_count reflects reality even if nobody has attempted a
+    # new reservation since one went stale.
+    reservation_service.expire_stale_pending_reservations(session, event_id)
+    session.refresh(event)
     return event
 
 
