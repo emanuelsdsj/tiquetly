@@ -102,6 +102,10 @@
   color: var(--error);
 }
 
+.browse-page__state--updating {
+  padding: 8px 0 24px;
+}
+
 .browse-page__grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));

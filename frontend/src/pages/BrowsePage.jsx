@@ -14,6 +14,7 @@ export function BrowsePage() {
   const [priceMax, setPriceMax] = useState('')
   const [events, setEvents] = useState(null)
   const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
   const isFiltering = q !== '' || category !== '' || priceMax !== ''
 
   const categories = [
@@ -25,9 +26,11 @@ export function BrowsePage() {
   useEffect(() => {
     const timeout = setTimeout(() => {
       setError(null)
+      setLoading(true)
       searchEvents({ q, category, price_max: priceMax })
         .then(setEvents)
         .catch((err) => setError(translateApiError(err, t)))
+        .finally(() => setLoading(false))
     }, 300)
     return () => clearTimeout(timeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,6 +87,13 @@ export function BrowsePage() {
         <p className="browse-page__state">
           <Spinner />
           {t('browse.loading')}
+        </p>
+      )}
+
+      {!error && events !== null && loading && (
+        <p className="browse-page__state browse-page__state--updating" aria-live="polite">
+          <Spinner />
+          {t('browse.updating')}
         </p>
       )}
 

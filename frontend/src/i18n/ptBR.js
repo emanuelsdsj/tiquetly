@@ -23,6 +23,7 @@ export const ptBR = {
     priceUpTo: 'Até',
     priceNoLimit: 'Sem limite',
     loading: 'Carregando eventos...',
+    updating: 'Atualizando resultados...',
     empty: 'Nenhum evento encontrado com esses filtros. Tente ajustar a busca.',
     featuredPrev: 'Evento anterior',
     featuredNext: 'Próximo evento',

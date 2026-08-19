@@ -23,6 +23,7 @@ export const en = {
     priceUpTo: 'Up to',
     priceNoLimit: 'No limit',
     loading: 'Loading events...',
+    updating: 'Updating results...',
     empty: 'No events found with these filters. Try adjusting the search.',
     featuredPrev: 'Previous event',
     featuredNext: 'Next event',
