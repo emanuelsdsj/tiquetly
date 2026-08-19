@@ -5,6 +5,7 @@ import { useLocale } from '../context/LocaleContext'
 import { translateApiError } from '../lib/apiErrors'
 import { formatPrice } from '../lib/format'
 import { isExpiryValid, maskCardNumber, maskDigits, maskExpiry } from '../lib/inputMasks'
+import { isValidCardHolder, isValidCardNumber, isValidCvv } from '../lib/validation'
 import './PaymentForm.css'
 
 const APPROVE_CARD = '4242 4242 4242 4242'
@@ -22,8 +23,20 @@ export function PaymentForm({ reservation, amount, onPaid, onDeclined }) {
 
   async function handleSubmit(formEvent) {
     formEvent.preventDefault()
+    if (!isValidCardNumber(cardNumber)) {
+      setError(t('paymentForm.invalidCardNumber'))
+      return
+    }
+    if (!isValidCardHolder(cardHolder)) {
+      setError(t('paymentForm.invalidCardHolder'))
+      return
+    }
     if (!isExpiryValid(expiry)) {
       setError(t('paymentForm.invalidExpiry'))
+      return
+    }
+    if (!isValidCvv(cvv)) {
+      setError(t('paymentForm.invalidCvv'))
       return
     }
     setSubmitting(true)
