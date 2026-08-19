@@ -92,8 +92,18 @@ export function EventDetailPage() {
     try {
       const created = await reserveGeneral(id, quantity, token)
       setReservation(created)
+      // Keeps event.reserved_count (and therefore `remaining`) accurate
+      // the moment a reservation is made, same as handleDeclined/
+      // handleExpired/handleCancelReservation already do on their own
+      // paths, instead of only refreshing on the next full page load.
+      getEvent(id).then(setEvent)
     } catch (err) {
       setReserveError(translateApiError(err, t))
+      // A SoldOutError here means capacity changed since the page
+      // loaded; refresh it so the form's remaining count/max stepper
+      // bound reflect reality instead of the stale value that caused
+      // the failed attempt in the first place.
+      getEvent(id).then(setEvent)
     } finally {
       setSubmitting(false)
     }
@@ -113,8 +123,14 @@ export function EventDetailPage() {
         ),
       )
       setSelectedSeatIds((current) => current.filter((seatId) => seatsById.has(seatId)))
+      getEvent(id).then(setEvent)
     } catch (err) {
       setReserveError(translateApiError(err, t))
+      // One or more selected seats may have just been taken by someone
+      // else; refresh both so the map reflects which seats are actually
+      // still available.
+      getEvent(id).then(setEvent)
+      getEventSeats(id).then(setSeats)
     } finally {
       setSubmitting(false)
     }
