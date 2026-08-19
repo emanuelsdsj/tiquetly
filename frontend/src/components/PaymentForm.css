@@ -19,6 +19,11 @@
 
 .payment-form__row .payment-form__field {
   flex: 1;
+  /* Flex items default to min-width: auto, which resolves to the
+     input's native intrinsic width and wins over flex: 1, so on a
+     narrow viewport expiry+CVV together overflowed the card instead of
+     sharing the row (same fix already used in CreateEventPage.css). */
+  min-width: 0;
 }
 
 .payment-form__field {
@@ -29,6 +34,7 @@
 }
 
 .payment-form__field input {
+  width: 100%;
   font-family: var(--font-mono);
   font-size: 0.95rem;
   padding: 10px 12px;
