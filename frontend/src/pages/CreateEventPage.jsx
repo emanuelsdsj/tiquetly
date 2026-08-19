@@ -5,8 +5,15 @@ import { useAuth } from '../context/AuthContext'
 import { useLocale } from '../context/LocaleContext'
 import { useCatalogSearch } from '../hooks/useCatalogSearch'
 import { translateApiError } from '../lib/apiErrors'
-import { formatEventDate, toDatetimeLocalValue } from '../lib/format'
+import { toDatetimeLocalValue } from '../lib/format'
+import {
+  isFutureDatetimeLocal,
+  isNonEmptyText,
+  isNonNegativeNumber,
+  isPositiveInteger,
+} from '../lib/validation'
 import { CreateEventCatalogSearch } from './CreateEventCatalogSearch'
+import { CreateEventDetailsForm } from './CreateEventDetailsForm'
 import './CreateEventPage.css'
 
 function emptyDetailsForm(catalogEvent) {
@@ -69,6 +76,22 @@ export function CreateEventPage() {
 
   async function handleSubmit(formEvent) {
     formEvent.preventDefault()
+    if (!isFutureDatetimeLocal(form.date)) {
+      setSubmitError(t('createEvent.invalidDate'))
+      return
+    }
+    if (!isNonEmptyText(form.venue)) {
+      setSubmitError(t('createEvent.invalidVenue'))
+      return
+    }
+    if (!isPositiveInteger(form.capacity)) {
+      setSubmitError(t('createEvent.invalidCapacity'))
+      return
+    }
+    if (!isNonNegativeNumber(form.price)) {
+      setSubmitError(t('createEvent.invalidPrice'))
+      return
+    }
     setSubmitting(true)
     setSubmitError(null)
     try {
@@ -150,94 +173,18 @@ export function CreateEventPage() {
       )}
 
       {selected && form && (
-        <div className="create-event-page__layout">
-          <div className="catalog-result catalog-result--picked">
-            {selected.image && (
-              <img
-                className="catalog-result__image"
-                src={selected.image}
-                alt=""
-                aria-hidden="true"
-              />
-            )}
-            <div className="catalog-result__info">
-              <h3 className="catalog-result__title">{selected.title}</h3>
-              <p className="catalog-result__meta">
-                {[
-                  t(`createEvent.category.${selected.category}`),
-                  selected.venue,
-                  selected.date ? formatEventDate(selected.date, locale) : null,
-                ]
-                  .filter(Boolean)
-                  .join(' · ')}
-              </p>
-            </div>
-            <button type="button" className="catalog-result__select" onClick={backToSearch}>
-              {t('createEvent.change')}
-            </button>
-          </div>
-
-          <form className="create-event-page__details" onSubmit={handleSubmit}>
-            <label>
-              {t('createEvent.formDateTime')}
-              <input
-                type="datetime-local"
-                value={form.date}
-                min={toDatetimeLocalValue(new Date().toISOString())}
-                onChange={(e) => setForm({ ...form, date: e.target.value })}
-                required
-              />
-            </label>
-            <label>
-              {t('createEvent.formVenue')}
-              <input
-                type="text"
-                value={form.venue}
-                onChange={(e) => setForm({ ...form, venue: e.target.value })}
-                required
-              />
-            </label>
-            <div className="create-event-page__details-row">
-              <label>
-                {t('createEvent.formCapacity')}
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={form.capacity}
-                  onChange={(e) => setForm({ ...form, capacity: e.target.value })}
-                  required
-                />
-              </label>
-              <label>
-                {t('createEvent.formPrice')}
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  required
-                />
-              </label>
-            </div>
-            <p className="create-event-page__hint">
-              {t('createEvent.reservationModeHint', {
-                mode: t(`createEvent.reservationMode.${reservationMode}`),
-              })}
-            </p>
-
-            {submitError && (
-              <p className="create-event-page__state create-event-page__state--error">
-                {submitError}
-              </p>
-            )}
-
-            <button type="submit" className="create-event-page__publish" disabled={submitting}>
-              {submitting ? t('createEvent.publishing') : t('createEvent.publish')}
-            </button>
-          </form>
-        </div>
+        <CreateEventDetailsForm
+          selected={selected}
+          form={form}
+          setForm={setForm}
+          reservationMode={reservationMode}
+          submitting={submitting}
+          submitError={submitError}
+          onSubmit={handleSubmit}
+          onBackToSearch={backToSearch}
+          t={t}
+          locale={locale}
+        />
       )}
     </main>
   )

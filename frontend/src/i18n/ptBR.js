@@ -225,6 +225,10 @@ export const ptBR = {
     formVenue: 'Local',
     formCapacity: 'Capacidade',
     formPrice: 'Preço',
+    invalidVenue: 'Digite um local.',
+    invalidCapacity: 'Digite uma capacidade de pelo menos 1.',
+    invalidPrice: 'Digite um preço de 0 ou mais.',
+    invalidDate: 'Escolha uma data e hora no futuro.',
     reservationModeHint: (params) =>
       `Modo de reserva: ${params.mode}. Definido automaticamente pelo catálogo, não pode ser alterado depois.`,
     reservationMode: { general: 'Por quantidade (pista/setor)', seatmap: 'Mapa de assentos' },

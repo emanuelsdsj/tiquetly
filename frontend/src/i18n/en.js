@@ -226,6 +226,10 @@ export const en = {
     formVenue: 'Venue',
     formCapacity: 'Capacity',
     formPrice: 'Price',
+    invalidVenue: 'Enter a venue.',
+    invalidCapacity: 'Enter a capacity of at least 1.',
+    invalidPrice: 'Enter a price of 0 or more.',
+    invalidDate: 'Pick a date and time in the future.',
     reservationModeHint: (params) =>
       `Reservation mode: ${params.mode}. Set automatically from the catalog listing, cannot be changed afterward.`,
     reservationMode: { general: 'By quantity (floor/section)', seatmap: 'Seat map' },
