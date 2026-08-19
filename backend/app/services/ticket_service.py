@@ -48,7 +48,21 @@ def list_my_tickets(session: Session, customer: User) -> list[TicketRead]:
     tickets = session.exec(
         select(Ticket).where(Ticket.customer_id == customer.id).order_by(Ticket.created_at.desc())
     ).all()
-    return [_to_ticket_read(session, ticket) for ticket in tickets]
+    if not tickets:
+        return []
+
+    # Batch-fetch events and seats instead of a session.get() per ticket
+    # in a loop (was a real N+1: a customer with tickets across several
+    # events paid one round trip per distinct event/seat).
+    event_ids = {ticket.event_id for ticket in tickets}
+    events = {event.id: event for event in session.exec(select(Event).where(Event.id.in_(event_ids))).all()}
+
+    seat_ids = {ticket.seat_id for ticket in tickets if ticket.seat_id is not None}
+    seats = (
+        {seat.id: seat for seat in session.exec(select(Seat).where(Seat.id.in_(seat_ids))).all()} if seat_ids else {}
+    )
+
+    return [_build_ticket_read(ticket, events[ticket.event_id], seats.get(ticket.seat_id)) for ticket in tickets]
 
 
 def get_public_ticket(session: Session, public_code: uuid.UUID) -> TicketRead:
@@ -132,6 +146,10 @@ def validate_ticket(session: Session, event_id: int, code: str) -> TicketValidat
 def _to_ticket_read(session: Session, ticket: Ticket) -> TicketRead:
     event = session.get(Event, ticket.event_id)
     seat = session.get(Seat, ticket.seat_id) if ticket.seat_id is not None else None
+    return _build_ticket_read(ticket, event, seat)
+
+
+def _build_ticket_read(ticket: Ticket, event: Event, seat: Seat | None) -> TicketRead:
     payload = build_qr_payload(str(ticket.public_code))
     return TicketRead(
         id=ticket.id,

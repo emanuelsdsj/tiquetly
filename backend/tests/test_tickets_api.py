@@ -118,6 +118,46 @@ def test_list_my_tickets_requires_authentication(client):
     assert response.status_code == 401
 
 
+def test_list_my_tickets_across_a_general_and_a_seatmap_event(client, session):
+    # Exercises the batched event/seat lookup in list_my_tickets: one
+    # ticket with no seat (general) and one with a seat (seatmap), from
+    # two different events, in the same response.
+    org_token = _token_for(session, UserRole.organizer, "org@example.com")
+    general_event_id = client.post(
+        "/events", json=SHOW_PAYLOAD, headers={"Authorization": f"Bearer {org_token}"}
+    ).json()["id"]
+    seatmap_event_id = client.post(
+        "/events", json=MOVIE_PAYLOAD, headers={"Authorization": f"Bearer {org_token}"}
+    ).json()["id"]
+    token = _token_for(session, UserRole.customer, "customer@example.com")
+
+    general_reservation = client.post(
+        f"/events/{general_event_id}/reservations",
+        json={"quantity": 1},
+        headers={"Authorization": f"Bearer {token}"},
+    ).json()
+    _pay(client, token, general_reservation["id"])
+
+    seats = client.get(f"/events/{seatmap_event_id}/seats", headers={"Authorization": f"Bearer {token}"}).json()
+    seatmap_reservation = client.post(
+        f"/events/{seatmap_event_id}/seat-reservations",
+        json={"seat_ids": [seats[0]["id"]]},
+        headers={"Authorization": f"Bearer {token}"},
+    ).json()
+    _pay(client, token, seatmap_reservation["id"])
+
+    response = client.get("/tickets/mine", headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body) == 2
+    assert {ticket["event"]["id"] for ticket in body} == {general_event_id, seatmap_event_id}
+    with_seat = next(ticket for ticket in body if ticket["seat"] is not None)
+    without_seat = next(ticket for ticket in body if ticket["seat"] is None)
+    assert with_seat["event"]["id"] == seatmap_event_id
+    assert without_seat["event"]["id"] == general_event_id
+
+
 def test_list_my_tickets_only_returns_the_current_customers_tickets(client, session):
     event_id = _publish_event(client, session, SHOW_PAYLOAD)
     token_a = _token_for(session, UserRole.customer, "a@example.com")
