@@ -52,6 +52,16 @@ def test_create_staff_account_creates_an_organizer(client, session):
     assert response.json()["role"] == "organizer"
 
 
+def test_create_staff_account_rejects_a_short_password(client, session):
+    token = _token_for(session, UserRole.admin)
+    payload = {**STAFF_PAYLOAD, "password": "abc12"}
+
+    response = client.post("/admin/users", json=payload, headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 422
+    assert response.json()["code"] == "VALIDATION_ERROR"
+
+
 def test_create_staff_account_rejects_a_customer_role(client, session):
     token = _token_for(session, UserRole.admin)
     payload = {**STAFF_PAYLOAD, "role": "customer"}

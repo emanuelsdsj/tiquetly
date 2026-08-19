@@ -37,7 +37,10 @@ def _as_utc(value: datetime | None) -> datetime | None:
 
 class UserCreate(BaseModel):
     email: EmailStr
-    password: str
+    # Matches the frontend's PasswordField minLength=6 (RegisterPage);
+    # enforced here too since that check is only client-side and a
+    # direct API call would otherwise bypass it entirely.
+    password: str = Field(min_length=6)
     name: str
 
 
@@ -47,7 +50,7 @@ class StaffAccountCreate(BaseModel):
     # "always customer" shape. Only organizer and gatekeeper are offered;
     # minting another admin from this screen was ruled out, see the ADR.
     email: EmailStr
-    password: str
+    password: str = Field(min_length=6)
     name: str
     role: Literal[UserRole.organizer, UserRole.gatekeeper]
 

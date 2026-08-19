@@ -12,6 +12,15 @@ def test_register_creates_a_customer(client):
     assert "hashed_password" not in body
 
 
+def test_register_rejects_a_short_password(client):
+    # The frontend enforces minLength=6 on the input, but that is only a
+    # client-side constraint; a direct API call must be rejected too.
+    response = client.post("/auth/register", json={**CREDENTIALS, "password": "abc12"})
+
+    assert response.status_code == 422
+    assert response.json()["code"] == "VALIDATION_ERROR"
+
+
 def test_register_rejects_a_duplicate_email(client):
     client.post("/auth/register", json=CREDENTIALS)
 
