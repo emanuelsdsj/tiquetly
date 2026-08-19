@@ -7,6 +7,7 @@ import { useLocale } from '../context/LocaleContext'
 import { useMyEvents } from '../hooks/useMyEvents'
 import { translateApiError } from '../lib/apiErrors'
 import { toDatetimeLocalValue } from '../lib/format'
+import { isFutureDatetimeLocal, isNonEmptyText, isNonNegativeNumber } from '../lib/validation'
 import { OrganizerEventCard } from './OrganizerEventCard'
 import './OrganizerPage.css'
 
@@ -44,6 +45,22 @@ export function OrganizerPage() {
   }
 
   async function handleSave(eventId) {
+    if (!isNonEmptyText(form.title)) {
+      setActionError(t('organizer.invalidTitle'))
+      return
+    }
+    if (!isNonEmptyText(form.venue)) {
+      setActionError(t('organizer.invalidVenue'))
+      return
+    }
+    if (!isFutureDatetimeLocal(form.date)) {
+      setActionError(t('organizer.invalidDate'))
+      return
+    }
+    if (!isNonNegativeNumber(form.price)) {
+      setActionError(t('organizer.invalidPrice'))
+      return
+    }
     setSavingId(eventId)
     setActionError(null)
     try {
