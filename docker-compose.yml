@@ -23,8 +23,8 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-tiquetly}:${POSTGRES_PASSWORD:-tiquetly}@db:5432/${POSTGRES_DB:-tiquetly}
       FRONTEND_ORIGIN: ${FRONTEND_ORIGIN:-http://localhost:5173}
-      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-me}
-      QR_HMAC_SECRET: ${QR_HMAC_SECRET:-change-me}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:?set JWT_SECRET_KEY in .env, see .env.example}
+      QR_HMAC_SECRET: ${QR_HMAC_SECRET:?set QR_HMAC_SECRET in .env, see .env.example}
       TICKETMASTER_API_KEY: ${TICKETMASTER_API_KEY:-}
       TMDB_API_KEY: ${TMDB_API_KEY:-}
     ports:

@@ -12,6 +12,11 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      # No defaults in Settings for these on purpose (see config.py): CI
+      # must set them explicitly, same as any other environment.
+      JWT_SECRET_KEY: ci-only-jwt-secret
+      QR_HMAC_SECRET: ci-only-qr-secret
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -48,6 +53,8 @@ jobs:
     env:
       DATABASE_URL: sqlite:///./e2e.db
       FRONTEND_ORIGIN: http://localhost:4173
+      JWT_SECRET_KEY: ci-only-jwt-secret
+      QR_HMAC_SECRET: ci-only-qr-secret
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
