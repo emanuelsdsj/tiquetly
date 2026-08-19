@@ -224,6 +224,7 @@ export function OrganizerPage() {
                           <input
                             type="datetime-local"
                             value={form.date}
+                            min={toDatetimeLocalValue(new Date().toISOString())}
                             onChange={(e) => setForm({ ...form, date: e.target.value })}
                             required
                           />

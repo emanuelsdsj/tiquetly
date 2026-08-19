@@ -3,7 +3,7 @@ from datetime import UTC, datetime, timedelta
 from sqlmodel import select
 
 from app.core.security import create_access_token
-from app.models import Event, EventStatus, User, UserRole
+from app.models import Event, EventCategory, EventSource, EventStatus, ReservationMode, User, UserRole
 
 
 def _future_iso(days: int) -> str:
@@ -53,6 +53,30 @@ def _publish_both(client, session):
     headers = {"Authorization": f"Bearer {token}"}
     client.post("/events", json=SHOW_PAYLOAD, headers=headers)
     client.post("/events", json=MOVIE_PAYLOAD, headers=headers)
+
+
+def _insert_published_event_directly(session, organizer_id: int, *, date: datetime, title: str) -> Event:
+    # POST /events rejects a past date (see the future-date validator on
+    # EventCreate), so a genuinely past-dated published event, needed
+    # here to exercise ADR 0025's search-time filtering, has to be
+    # inserted straight into the session instead of going through the API.
+    event = Event(
+        organizer_id=organizer_id,
+        source=EventSource.ticketmaster,
+        external_id="past-event",
+        title=title,
+        category=EventCategory.show,
+        date=date,
+        venue="Allianz Parque",
+        capacity=3,
+        price=180.0,
+        reservation_mode=ReservationMode.general,
+        status=EventStatus.published,
+    )
+    session.add(event)
+    session.commit()
+    session.refresh(event)
+    return event
 
 
 def test_search_events_requires_no_authentication(client, session):
@@ -113,8 +137,8 @@ def test_search_events_filters_by_price_range(client, session):
 def test_search_events_excludes_a_past_dated_event_by_default(client, session):
     token = _organizer_token(session)
     headers = {"Authorization": f"Bearer {token}"}
-    past_payload = {**SHOW_PAYLOAD, "date": "2020-01-01T00:00:00Z"}
-    client.post("/events", json=past_payload, headers=headers)
+    user = session.exec(select(User).where(User.email == "org@example.com")).one()
+    _insert_published_event_directly(session, user.id, date=datetime(2020, 1, 1, tzinfo=UTC), title="Old Show")
     client.post("/events", json=MOVIE_PAYLOAD, headers=headers)
 
     response = client.get("/events")
@@ -130,10 +154,9 @@ def test_search_events_still_returns_a_past_dated_event_with_an_explicit_date_fr
     # local day) must still find an event that already started (ADR
     # 0025): the auto-exclusion only applies to the plain, no-date-filter
     # browse case.
-    token = _organizer_token(session)
-    headers = {"Authorization": f"Bearer {token}"}
-    past_payload = {**SHOW_PAYLOAD, "date": "2020-01-01T00:00:00Z"}
-    client.post("/events", json=past_payload, headers=headers)
+    _organizer_token(session)
+    user = session.exec(select(User).where(User.email == "org@example.com")).one()
+    _insert_published_event_directly(session, user.id, date=datetime(2020, 1, 1, tzinfo=UTC), title="Old Show")
 
     response = client.get("/events", params={"date_from": "2019-12-31T00:00:00Z"})
 

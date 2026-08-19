@@ -35,6 +35,20 @@ def _as_utc(value: datetime | None) -> datetime | None:
     return value
 
 
+def _must_be_in_the_future(value: datetime | None) -> datetime | None:
+    # Nothing on the client enforced this before (the datetime-local
+    # inputs in CreateEventPage/OrganizerPage had no `min`), so an
+    # organizer could publish, or reschedule, an event into the past.
+    # This is the actual guarantee; the frontend now also sets `min` on
+    # those inputs so the mistake is caught before the request is sent.
+    if value is None:
+        return value
+    reference = value if value.tzinfo is not None else value.replace(tzinfo=UTC)
+    if reference <= datetime.now(UTC):
+        raise ValueError("date must be in the future")
+    return value
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     # Matches the frontend's PasswordField minLength=6 (RegisterPage);
@@ -82,6 +96,8 @@ class EventCreate(BaseModel):
     price: float = Field(ge=0)
     reservation_mode: ReservationMode
 
+    _validate_date_is_future = field_validator("date", mode="after")(_must_be_in_the_future)
+
     @model_validator(mode="after")
     def _reservation_mode_matches_category(self) -> "EventCreate":
         # Decided in ADR 0003, relaxed in its addendum: movies always sell
@@ -105,6 +121,8 @@ class EventUpdate(BaseModel):
     date: datetime | None = None
     venue: str | None = None
     price: float | None = Field(default=None, ge=0)
+
+    _validate_date_is_future = field_validator("date", mode="after")(_must_be_in_the_future)
 
 
 class EventRead(BaseModel):

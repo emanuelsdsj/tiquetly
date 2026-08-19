@@ -108,6 +108,16 @@ def test_create_event_generates_seats_for_a_show_with_assigned_seating(client, s
     assert {seat.row for seat in seats} == {"A", "B"}
 
 
+def test_create_event_rejects_a_past_date(client, session):
+    token = _token_for(session, UserRole.organizer)
+    payload = {**SHOW_PAYLOAD, "date": "2020-01-01T00:00:00Z"}
+
+    response = client.post("/events", json=payload, headers={"Authorization": f"Bearer {token}"})
+
+    assert response.status_code == 422
+    assert response.json()["code"] == "VALIDATION_ERROR"
+
+
 def test_create_event_rejects_a_movie_with_general_reservation_mode(client, session):
     token = _token_for(session, UserRole.organizer)
     payload = {**MOVIE_PAYLOAD, "reservation_mode": "general"}

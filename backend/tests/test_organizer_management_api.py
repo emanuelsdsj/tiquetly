@@ -99,6 +99,20 @@ def test_update_event_changes_only_the_given_fields(client, session):
     assert body["capacity"] == SHOW_PAYLOAD["capacity"]
 
 
+def test_update_event_rejects_rescheduling_into_the_past(client, session):
+    token = _token_for(session, UserRole.organizer)
+    event = _publish_event(client, token)
+
+    response = client.patch(
+        f"/events/{event['id']}",
+        json={"date": "2020-01-01T00:00:00Z"},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 422
+    assert response.json()["code"] == "VALIDATION_ERROR"
+
+
 def test_update_event_cannot_change_capacity_or_category(client, session):
     token = _token_for(session, UserRole.organizer)
     event = _publish_event(client, token)
