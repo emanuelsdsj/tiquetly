@@ -1,14 +1,24 @@
+from datetime import UTC, datetime, timedelta
+
 from sqlmodel import select
 
 from app.core.security import create_access_token
 from app.models import Seat, User, UserRole
+
+
+def _future_iso(days: int) -> str:
+    # Fixed future dates go stale the moment "today" catches up to them;
+    # anchoring to now keeps event fixtures future forever (see the same
+    # fix and rationale in test_events_search_api.py).
+    return (datetime.now(UTC) + timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
 
 SHOW_PAYLOAD = {
     "source": "ticketmaster",
     "external_id": "abc123",
     "title": "Test Show",
     "category": "show",
-    "date": "2026-09-01T23:00:00Z",
+    "date": _future_iso(60),
     "venue": "Test Venue",
     "capacity": 3,
     "price": 100.0,
@@ -20,7 +30,7 @@ MOVIE_PAYLOAD = {
     "external_id": "42",
     "title": "Test Movie",
     "category": "movie",
-    "date": "2026-09-01T00:00:00Z",
+    "date": _future_iso(60),
     "venue": "Test Cinema",
     "capacity": 12,
     "price": 40.0,

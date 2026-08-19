@@ -1,14 +1,26 @@
+from datetime import UTC, datetime, timedelta
+
 from sqlmodel import select
 
 from app.core.security import create_access_token
 from app.models import Event, EventStatus, User, UserRole
+
+
+def _future_iso(days: int) -> str:
+    # Fixed future dates go stale the moment "today" catches up to them
+    # (this bit the suite for real: MOVIE_PAYLOAD's old hardcoded
+    # 2026-08-15 became a past date and silently failed every test in
+    # this file once ADR 0025's past-date filtering kicked in). Anchoring
+    # to now keeps these fixtures future forever.
+    return (datetime.now(UTC) + timedelta(days=days)).strftime("%Y-%m-%dT%H:%M:%SZ")
+
 
 SHOW_PAYLOAD = {
     "source": "ticketmaster",
     "external_id": "abc123",
     "title": "Legião Urbana - Turnê 40 Anos",
     "category": "show",
-    "date": "2026-09-01T23:00:00Z",
+    "date": _future_iso(60),
     "venue": "Allianz Parque",
     "capacity": 3,
     "price": 180.0,
@@ -20,7 +32,7 @@ MOVIE_PAYLOAD = {
     "external_id": "42",
     "title": "A Odisseia",
     "category": "movie",
-    "date": "2026-08-15T00:00:00Z",
+    "date": _future_iso(45),
     "venue": "Cinemark Raposo Shopping",
     "capacity": 12,
     "price": 32.0,
