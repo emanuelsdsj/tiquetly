@@ -124,6 +124,14 @@ def test_create_event_rejects_zero_capacity(client, session):
     response = client.post("/events", json=payload, headers={"Authorization": f"Bearer {token}"})
 
     assert response.status_code == 422
+    body = response.json()
+    # Pydantic validation errors (as opposed to domain AppErrors) must also
+    # come back normalized: "detail" a plain string, never the framework's
+    # default array of error objects, or the frontend renders "[object
+    # Object]" wherever it expects text.
+    assert isinstance(body["detail"], str)
+    assert "capacity" in body["detail"]
+    assert body["code"] == "VALIDATION_ERROR"
 
 
 def test_list_my_events_only_returns_the_organizers_own(client, session):
