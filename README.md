@@ -243,25 +243,24 @@ Credentials (same password for everyone, just to make testing easier):
 After the seed, at http://localhost:5173:
 
 1. **Organizer** (`organizador@tiquetly.com`): sign in, go to
-   "Meus eventos" (My events), "Criar evento" (Create event) to publish
-   another one from the catalog, or edit/unpublish the two that already
-   exist.
+   "My events", "Create event" to publish another one from the catalog,
+   or edit/unpublish the two that already exist.
 2. **Customer** (`cliente1@tiquetly.com` or `cliente2@tiquetly.com`):
    search for an event on the home page, open it, reserve (quantity for
    `general` events, seat map for `seatmap` events), pay with the test
    card that approves (`4242 4242 4242 4242`) or the one that declines
    (`4000 0000 0000 0002`, releases the stock again). A pending
-   reservation can also be cancelled before paying ("Desistir e
-   cancelar reserva", give up and cancel reservation). Once approved,
-   the ticket shows up under "Meus ingressos" (My tickets), with a QR
-   code, a code to type in at the gate, and a button to copy the public
-   sharing link; from there you can also cancel an already-paid
-   reservation (releases the ticket and the seat/stock).
-3. **Gatekeeper** (`portaria@tiquetly.com`): sign in, go to "Portaria"
-   (Gate), pick today's event, validate by camera or by typing the code
-   in. One ticket from the seeded movie event already shows as
-   "already used" so you can test that outcome without validating the
-   same ticket twice by hand.
+   reservation can also be cancelled before paying ("Give up and cancel
+   reservation"). Once approved, the ticket shows up under "My
+   tickets", with a QR code, a code to type in at the gate, and a
+   button to copy the public sharing link; from there you can also
+   cancel an already-paid reservation (releases the ticket and the
+   seat/stock).
+3. **Gatekeeper** (`portaria@tiquetly.com`): sign in, go to "Gate",
+   pick today's event, validate by camera or by typing the code in.
+   One ticket from the seeded movie event already shows as "already
+   used" so you can test that outcome without validating the same
+   ticket twice by hand.
 4. **Admin** (`admin@tiquetly.com`, optional): sign in, go to "Admin",
    create a new organizer or gatekeeper account and sign in as it
    right away, no seed script or database access needed.
