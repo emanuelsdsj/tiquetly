@@ -154,10 +154,11 @@ def _buy_pay_and_validate_one_ticket(session: Session, customer: User, event: Ev
 
 def main() -> None:
     with Session(engine) as session:
-        organizer, _ = _get_or_create_user(session, *SEED_USERS[0])
-        customer1, _ = _get_or_create_user(session, *SEED_USERS[1])
-        customer2, _ = _get_or_create_user(session, *SEED_USERS[2])
-        _get_or_create_user(session, *SEED_USERS[3])
+        _get_or_create_user(session, *SEED_USERS[0])
+        organizer, _ = _get_or_create_user(session, *SEED_USERS[1])
+        customer1, _ = _get_or_create_user(session, *SEED_USERS[2])
+        customer2, _ = _get_or_create_user(session, *SEED_USERS[3])
+        _get_or_create_user(session, *SEED_USERS[4])
 
         show_event, show_created = _get_or_create_show_event(session, organizer)
         movie_event, movie_created = _get_or_create_movie_event(session, organizer)
