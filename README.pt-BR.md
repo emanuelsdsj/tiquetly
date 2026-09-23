@@ -95,10 +95,13 @@ flowchart TB
   O raciocínio completo de cada escolha desta página, incluindo as
   descartadas pelo caminho, fica num conjunto separado de notas de
   engenharia, fora deste repositório.
-- Topologia de deploy (não está mais no ar): build estático do frontend
-  na Vercel, backend e uma instância gerenciada de Postgres num serviço
-  como o Render, uma instância cada. O desenvolvimento local roda a
-  stack inteira (backend, frontend, arquivo SQLite) dentro do
+- Topologia de deploy: build estático do frontend na Vercel
+  (https://tiquetly.vercel.app/), backend e uma instância gerenciada de
+  Postgres no Railway, uma instância cada. O frontend refaz o deploy
+  sozinho a cada push na branch main, pela própria integração da Vercel
+  com o GitHub; o backend é publicado manualmente pela CLI. O
+  desenvolvimento local roda a stack inteira (backend, frontend, arquivo
+  SQLite) dentro do
   devcontainer, sem nenhum serviço externo necessário além das duas
   chaves de API de catálogo.
 

@@ -93,11 +93,14 @@ flowchart TB
   for every choice on this page, including the ones considered and
   discarded, is kept in a separate set of engineering notes, not part
   of this repository.
-- Deploy topology (not currently live): a static frontend build on
-  Vercel, backend and a managed Postgres instance on a service like
-  Render, one instance each. Local development runs the whole stack
-  (backend, frontend, SQLite file) inside the devcontainer, no external
-  services required except the two catalog API keys.
+- Deploy topology: a static frontend build on Vercel
+  (https://tiquetly.vercel.app/), backend and a managed Postgres
+  instance on Railway, one instance each. The frontend redeploys
+  automatically on every push to the main branch, through Vercel's own
+  GitHub integration; the backend is deployed by hand from the CLI.
+  Local development runs the whole stack (backend, frontend, SQLite
+  file) inside the devcontainer, no external services required except
+  the two catalog API keys.
 
 ## Running the project
 
